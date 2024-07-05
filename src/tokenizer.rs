@@ -9,6 +9,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
 
     let mut tokens = vec![];
 
+    let line = 1usize;
+
     while let Some(c) = chars.next() {
         match c {
             '(' => tokens.push(Token::new(TokenType::LEFT_PAREN, c.to_string())),
@@ -22,7 +24,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
             '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
             '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
-            _ => bail!("Unknown character: {}", c),
+            _ => eprint!("[line {}] Error: Unexpected character: {}", line, c),
         }
     }
 
