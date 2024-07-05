@@ -118,9 +118,11 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         }
                     }
                 }
-                let value = if number.chars().last() == Some('.') {
+                let value = if let Some('.') = number.chars().last() {
                     number.push('0');
                     number[0..number.len()-1].to_string()
+                } else {
+                    number
                 }
                 tokens.push(Token::new_with_value(TokenType::NUMBER, value, number.to_string()));
             }
