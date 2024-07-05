@@ -95,7 +95,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 }
 
                 if string.chars().last() != Some('"') {
-                    eprintln!("[line {}] Error: Unterminated string", line);
+                    eprintln!("[line {}] Error: Unterminated string.", line);
                     has_error = true
                 }
             },
