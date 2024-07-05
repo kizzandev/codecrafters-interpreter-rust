@@ -2,48 +2,61 @@ use std::env;
 use std::fs;
 use std::fmt::Display;
 
-enum Token {
-    LeftParen,
-    RightParen,
+use anyhow::bail;
 
-    Unknown,
-    Eof,
+#[derive(Debug)]
+#[allow(non_camel_case_types)]
+enum TokenType {
+    LEFT_PAREN,
+    RIGHT_PAREN,
+
+    UNKNOWN,
+    EOF,
 }
 
-impl From<char> for Token {
-    fn from(c: char) -> Self {
-        match c {
-            '(' => Token::LeftParen,
-            ')' => Token::RightParen,
-            _ => Token::Unknown,
+struct Token {
+    _type: TokenType,
+    _string: String,
+    _value: Option<String>,
+}
+
+impl Token {
+    fn new(_type: TokenType, _string: String) -> Self {
+        Token {
+            _type,
+            _string,
+            _value: None,
         }
     }
 }
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Token::LeftParen => "LEFT_PAREN",
-            Token::RightParen => "RIGHT_PAREN",
-            Token::Unknown => "UNKNOWN",
-            Token::Eof => "EOF",
-        };
-        f.write_str(s)
+        write!(f, "{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
     }
 }
 
-struct TokenResult(Token, String);
+fn tokenize(filename: &String) -> anyhow::Result<()> {
+    let file_contents = fs::read_to_string(filename)?;
+    let mut chars = file_contents.chars();
 
-impl From<char> for TokenResult {
-    fn from(c: char) -> Self {
-        Self(Token::from(c), c.to_string())
-    }
-}
+    let mut tokens = vec![];
 
-impl Display for TokenResult {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.write_str(&format!("{} {}", self.0, self.1))
+    while let Some(c) = chars.next() {
+        match c {
+            '(' => tokens.push(Token::new(TokenType::LEFT_PAREN, c.to_string())),
+            ')' => tokens.push(Token::new(TokenType::RIGHT_PAREN, c.to_string())),
+            _ => bail!("Unknown character: {}", c),
+        }
     }
+
+    tokens.push(Token::new(TokenType::EOF, "".to_string()));
+
+    for token in tokens {
+        eprintln!("{}", token);
+    }
+
+    Ok(())
 }
 
 fn main() {
@@ -57,27 +70,7 @@ fn main() {
     let filename = &args[2];
 
     match command.as_str() {
-        "tokenize" => {
-            let file_contents = fs::read_to_string(filename).unwrap_or_else(|_| {
-                eprintln!("Failed to read file {}", filename);
-                String::new()
-            });
-
-            if !file_contents.is_empty() {
-                for char in file_contents.chars() {
-                    if char == '\n' {
-                        continue;
-                    }
-                    let result = TokenResult::from(char);
-                    println!("{}", result);
-                }
-                println!("EOF  null");
-            } else {
-                println!("EOF  null"); // Placeholder, remove this line when implementing the scanner
-            }
-        }
-        _ => {
-            eprintln!("Unknown command: {}", command);
-        }
+        "tokenize" => tokenize(filename).unwrap(),
+        _ => eprintln!("Unknown command: {}", command),
     }
 }
