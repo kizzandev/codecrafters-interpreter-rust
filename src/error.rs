@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 #[derive(Debug, Clone, Copy)]
 pub struct Error {
-    exit_code: u8,
+    pub exit_code: u8,
 }
 
 impl Display for Error {
