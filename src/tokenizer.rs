@@ -120,11 +120,19 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 }
 
                 if let Some('.') = number.chars().last() {
+                    let value = number.clone()[0..number.len()-1].to_string();
                     number.push('0');
-                    tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone()[0..number.len()-2].to_string(), number));
+                    tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
                     tokens.push(Token::new(TokenType::DOT, ".".to_string()));
                 } else {
-                    tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
+                    if (!has_dot) {
+                        let value = number.clone();
+                        number.push('.');
+                        number.push('0');
+                        tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
+                    } else {
+                        tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
+                    }
                 }
             }
             _ => {
