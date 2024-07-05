@@ -2,7 +2,7 @@ use std::env;
 
 mod token;
 mod tokenizer;
-use crate::tokenizer::tokenizer;
+use crate::tokenizer::tokenize;
 
 fn main() {
     let args: Vec<String> = env::args().collect();
