@@ -8,7 +8,6 @@ enum Token {
 
     Unknown,
     Eof,
-    Total_tokens,
 }
 
 impl From<char> for Token {
