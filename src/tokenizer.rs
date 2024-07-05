@@ -103,7 +103,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 let mut number = String::new();
                 number.push(c);
                 let mut has_dot = false;
-                while let Some(&next_c) = chars.peek() {
+                let mut peekable = chars.clone().peekable();
+                while let Some(&next_c) = peekable.next() {
                     if next_c.is_ascii_digit() {
                         number.push(next_c);
                         chars.next();
