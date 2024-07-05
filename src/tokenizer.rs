@@ -27,7 +27,18 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             '+' => tokens.push(Token::new(TokenType::PLUS, c.to_string())),
             ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
             '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
-            '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
+            '/' => {
+                let mut peekable = chars.clone().peekable();
+                if peekable.next() == Some('/') {
+                    while let Some(c) = chars.next() {
+                        if c == '\n' {
+                            break;
+                        }
+                    }
+                } else {
+                    tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string()));
+                }
+            },
             '=' => {
                 let mut peekable = chars.clone().peekable();
                 if peekable.next() == Some('=') {
