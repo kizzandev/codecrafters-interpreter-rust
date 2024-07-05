@@ -29,7 +29,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
             '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
             _ => {
-                eprint!("[line {}] Error: Unexpected character: {}", line, c);
+                eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
             },
         }
