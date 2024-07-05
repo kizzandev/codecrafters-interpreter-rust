@@ -99,6 +99,23 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     has_error = true
                 }
             },
+            0..=9 => {
+                let mut number = String::new();
+                number.push(c);
+                let mut has_dot = false;
+                while let Some(c) = chars.next() {
+                    if c == '.' && !has_dot || c.is_ascii_digit() {
+                        number.push(c);
+                        if c == '.' {
+                            has_dot = true;
+                        }
+                    } else {
+                        break;
+                    }
+                }
+
+                tokens.push(Token::new_with_value(TokenType::NUMBER, number, number.to_string()));
+            }
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
