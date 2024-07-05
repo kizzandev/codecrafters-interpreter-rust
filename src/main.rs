@@ -4,36 +4,8 @@ use std::fmt::Display;
 
 use anyhow::bail;
 
-#[derive(Debug)]
-#[allow(non_camel_case_types)]
-enum TokenType {
-    LEFT_PAREN,
-    RIGHT_PAREN,
-
-    EOF,
-}
-
-struct Token {
-    _type: TokenType,
-    _string: String,
-    _value: Option<String>,
-}
-
-impl Token {
-    fn new(_type: TokenType, _string: String) -> Self {
-        Token {
-            _type,
-            _string,
-            _value: None,
-        }
-    }
-}
-
-impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
-    }
-}
+mod token;
+use crate::token::{Token, TokenType};
 
 fn tokenize(filename: &String) -> anyhow::Result<()> {
     let file_contents = fs::read_to_string(filename)?;
