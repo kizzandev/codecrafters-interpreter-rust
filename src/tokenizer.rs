@@ -79,7 +79,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ' ' | '\t' | '\r' => continue,
             '\n' => line += 1,
             '"' => {
-                let mut string = String::new("\"".to_string());
+                let mut string = String::new();
+                string.push(c);
                 while let Some(c) = chars.next() {
                     if c == '"' {
                         string.push(c);
