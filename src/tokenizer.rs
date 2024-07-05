@@ -99,7 +99,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     has_error = true
                 }
             },
-            0..=9 => {
+            c if c.is_ascii_digit() => {
                 let mut number = String::new();
                 number.push(c);
                 let mut has_dot = false;
