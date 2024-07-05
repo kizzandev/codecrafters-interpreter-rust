@@ -89,6 +89,11 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         string.push(c);
                     }
                 }
+
+                if string.chars().last() != Some('"') {
+                    eprintln!("[line {}] Error: Unterminated string", line);
+                    has_error = true
+                }
             },
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
