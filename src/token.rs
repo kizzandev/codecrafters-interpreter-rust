@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-
 #[derive(Debug)]
 #[allow(non_camel_case_types)]
 pub enum TokenType {
@@ -16,7 +15,7 @@ pub struct Token {
     _value: Option<String>,
 }
 
-impl Token {
+pub impl Token {
     fn new(_type: TokenType, _string: String) -> Self {
         Token {
             _type,
@@ -26,7 +25,7 @@ impl Token {
     }
 }
 
-impl Display for Token {
+pub impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
     }
