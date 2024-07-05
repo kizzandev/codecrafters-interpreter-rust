@@ -14,7 +14,7 @@ pub enum TokenType {
     PLUS,
     SEMICOLON,
     STAR,
-    FOWARD_SLASH,
+    SLASH,
 
     EQUAL,
     EQUAL_EQUAL,
