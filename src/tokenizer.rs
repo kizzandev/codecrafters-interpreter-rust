@@ -78,6 +78,17 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             },
             ' ' | '\t' | '\r' => continue,
             '\n' => line += 1,
+            '"' => {
+                let mut string = String::new();
+                while let Some(c) = chars.next() {
+                    if c == '"' {
+                        tokens.push(Token::new_with_value(TokenType::STRING, string, string.clone()));
+                        break;
+                    } else {
+                        string.push(c);
+                    }
+                }
+            },
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
