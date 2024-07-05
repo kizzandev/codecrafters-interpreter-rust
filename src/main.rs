@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 use std::io::{self, Write};
 
 use anyhow::bail;
@@ -32,7 +32,7 @@ impl Token {
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(format!("{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string())))
+        write!("{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
     }
 }
 
