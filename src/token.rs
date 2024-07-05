@@ -8,6 +8,14 @@ pub enum TokenType {
     LEFT_BRACE,
     RIGHT_BRACE,
 
+    COMMA,
+    DOT,
+    MINUS,
+    PLUS,
+    SEMICOLON,
+    STAR,
+    FOWARD_SLASH,
+
     EOF,
 }
 

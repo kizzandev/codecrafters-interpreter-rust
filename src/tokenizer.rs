@@ -15,6 +15,13 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ')' => tokens.push(Token::new(TokenType::RIGHT_PAREN, c.to_string())),
             '{' => tokens.push(Token::new(TokenType::LEFT_BRACE, c.to_string())),
             '}' => tokens.push(Token::new(TokenType::RIGHT_BRACE, c.to_string())),
+            ',' => tokens.push(Token::new(TokenType::COMMA, c.to_string())),
+            '.' => tokens.push(Token::new(TokenType::DOT, c.to_string())),
+            '-' => tokens.push(Token::new(TokenType::MINUS, c.to_string())),
+            '+' => tokens.push(Token::new(TokenType::PLUS, c.to_string())),
+            ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
+            '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
+            '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
             _ => bail!("Unknown character: {}", c),
         }
     }
