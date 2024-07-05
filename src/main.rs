@@ -1,7 +1,6 @@
 use std::env;
 use std::fs;
-use std::fmt::{Display, Formatter};
-use std::io::{self, Write};
+use std::fmt::Display;
 
 use anyhow::bail;
 
