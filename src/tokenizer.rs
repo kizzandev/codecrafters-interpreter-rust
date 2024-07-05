@@ -32,6 +32,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 if peekable.next() == Some('/') {
                     while let Some(c) = chars.next() {
                         if c == '\n' {
+                            line += 1;
                             break;
                         }
                     }
