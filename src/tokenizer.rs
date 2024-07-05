@@ -79,11 +79,14 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ' ' | '\t' | '\r' => continue,
             '\n' => line += 1,
             '"' => {
-                let mut string = String::new();
+                let mut string = String::new("\"".to_string());
                 while let Some(c) = chars.next() {
                     if c == '"' {
-                        let string_lit = "\"".to_string() + &string + "\"";
-                        tokens.push(Token::new_with_value(TokenType::STRING, string_lit, string.clone()));
+                        string.push(c);
+                        tokens.push(Token::new_with_value(
+                            TokenType::STRING,
+                            string.clone(),
+                            string.clone()[1..string.len()-1].to_string()));
                         break;
                     } else {
                         string.push(c);
