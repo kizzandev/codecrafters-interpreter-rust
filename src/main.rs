@@ -1,7 +1,4 @@
 use std::env;
-use std::fs;
-
-use anyhow::bail;
 
 mod tokenizer;
 use crate::tokenizer::tokenizer;

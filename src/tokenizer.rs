@@ -1,4 +1,5 @@
-mod token;
+use std::fs;
+
 use crate::token::{Token, TokenType};
 use anyhow::bail;
 
