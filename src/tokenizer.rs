@@ -135,6 +135,20 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     }
                 }
             }
+            c if c.is_alphabetic() || c == '_' => {
+                let mut identifier = String::new();
+                identifier.push(c);
+                let mut peekable = chars.clone().peekable();
+                while let Some(next_c) = peekable.next() {
+                    if next_c.is_alphanumeric() || next_c == '_' {
+                        identifier.push(next_c);
+                        chars.next();
+                    } else {
+                        break;
+                    }
+                }
+                tokens.push(Token::new_with_value(TokenType::IDENTIFIER, identifier.clone(), identifier));
+            }
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
