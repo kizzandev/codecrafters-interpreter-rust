@@ -26,6 +26,7 @@ pub enum TokenType {
     LESS_EQUAL,
 
     STRING,
+    NUMBER,
 
     EOF,
 }
