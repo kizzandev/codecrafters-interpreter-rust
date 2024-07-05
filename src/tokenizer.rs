@@ -131,7 +131,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         number.push('0');
                         tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
                     } else {
-                        let number = number.clone();
+                        let value = number.clone();
 
                         // if multiple 0 after the dot, then leave only one
                         // 1. check the last character
@@ -142,7 +142,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                             number.pop();
                         }
 
-                        tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
+                        tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
                     }
                 }
             }
