@@ -15,8 +15,8 @@ pub struct Token {
     _value: Option<String>,
 }
 
-pub impl Token {
-    fn new(_type: TokenType, _string: String) -> Self {
+impl Token {
+    pub fn new(_type: TokenType, _string: String) -> Self {
         Token {
             _type,
             _string,
@@ -25,8 +25,8 @@ pub impl Token {
     }
 }
 
-pub impl Display for Token {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl Display for Token {
+    pub fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
     }
 }
