@@ -103,22 +103,20 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 let mut number = String::new();
                 number.push(c);
                 let mut has_dot = false;
-                while let Some(c) = chars.next() {
-                    if c == '.' && !has_dot || c.is_ascii_digit() {
-                        if c == '.' {
-                            let mut peekable = chars.clone().peekable();
-                            let Some(c) = peekable.next() else { break; };
-                            if !c.is_ascii_digit() {
-                                break;
-                            }
-                            has_dot = true;
-                        }
-                        number.push(c);
+                while let Some(&next_c) = chars.peek() {
+                    if next_c.is_ascii_digit() {
+                        number.push(next_c);
+                        chars.next();
                     } else {
-                        break;
+                        if next_c == '.' && !has_dot {
+                            number.push(next_c);
+                            chars.next();
+                            has_dot = true;
+                        } else {
+                            break;
+                        }
                     }
                 }
-
                 tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number.to_string()));
             }
             _ => {
