@@ -151,7 +151,26 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         break;
                     }
                 }
-                tokens.push(Token::new(TokenType::IDENTIFIER, identifier));
+
+                match identifier.as_str() {
+                    "and" => tokens.push(Token::new(TokenType::AND, identifier)),
+                    "class" => tokens.push(Token::new(TokenType::CLASS, identifier)),
+                    "else" => tokens.push(Token::new(TokenType::ELSE, identifier)),
+                    "false" => tokens.push(Token::new(TokenType::FALSE, identifier)),
+                    "for" => tokens.push(Token::new(TokenType::FOR, identifier)),
+                    "fun" => tokens.push(Token::new(TokenType::FUN, identifier)),
+                    "if" => tokens.push(Token::new(TokenType::IF, identifier)),
+                    "nil" => tokens.push(Token::new(TokenType::NIL, identifier)),
+                    "or" => tokens.push(Token::new(TokenType::OR, identifier)),
+                    "print" => tokens.push(Token::new(TokenType::PRINT, identifier)),
+                    "return" => tokens.push(Token::new(TokenType::RETURN, identifier)),
+                    "super" => tokens.push(Token::new(TokenType::SUPER, identifier)),
+                    "this" => tokens.push(Token::new(TokenType::THIS, identifier)),
+                    "true" => tokens.push(Token::new(TokenType::TRUE, identifier)),
+                    "var" => tokens.push(Token::new(TokenType::VAR, identifier)),
+                    "while" => tokens.push(Token::new(TokenType::WHILE, identifier)),
+                    _ => tokens.push(Token::new(TokenType::IDENTIFIER, identifier)),
+                }
             }
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
