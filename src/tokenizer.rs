@@ -118,7 +118,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         }
                     }
                 }
-                let value if number.chars().last() == Some('.') {
+                let value = if number.chars().last() == Some('.') {
                     number.push('0');
                     number[0..number.len()-1].to_string()
                 }
