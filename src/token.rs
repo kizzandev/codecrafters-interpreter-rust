@@ -5,6 +5,8 @@ use std::fmt::Display;
 pub enum TokenType {
     LEFT_PAREN,
     RIGHT_PAREN,
+    LEFT_BRACE,
+    RIGHT_BRACE,
 
     EOF,
 }

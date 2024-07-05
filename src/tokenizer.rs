@@ -13,6 +13,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
         match c {
             '(' => tokens.push(Token::new(TokenType::LEFT_PAREN, c.to_string())),
             ')' => tokens.push(Token::new(TokenType::RIGHT_PAREN, c.to_string())),
+            '{' => tokens.push(Token::new(TokenType::LEFT_BRACE, c.to_string())),
+            '}' => tokens.push(Token::new(TokenType::RIGHT_BRACE, c.to_string())),
             _ => bail!("Unknown character: {}", c),
         }
     }
