@@ -118,13 +118,14 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         }
                     }
                 }
-                let value = if let Some('.') = number.chars().last() {
-                    number.push('0');//
-                    number[0..number.len()-2].to_string()
+
+                if let Some('.') = number.chars().last() {
+                    number.push('0');
+                    tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone()[0..number.len()-2].to_string(), number));
+                    tokens.push(Token::new_with_value(TokenType::DOT, ".".to_string(), ".".to_string()));
                 } else {
-                    number.clone()
-                };
-                tokens.push(Token::new_with_value(TokenType::NUMBER, value, number.to_string()));
+                    tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
+                }
             }
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
