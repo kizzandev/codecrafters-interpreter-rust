@@ -1,5 +1,6 @@
 use std::env;
 
+mod token;
 mod tokenizer;
 use crate::tokenizer::tokenizer;
 
