@@ -147,7 +147,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         break;
                     }
                 }
-                tokens.push(Token::new_with_value(TokenType::IDENTIFIER, identifier.clone(), identifier));
+                tokens.push(Token::new(TokenType::IDENTIFIER, identifier));
             }
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
