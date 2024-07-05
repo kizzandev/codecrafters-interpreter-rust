@@ -87,7 +87,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         tokens.push(Token::new_with_value(
                             TokenType::STRING,
                             string.clone(),
-                            string.clone()[1..string.len()-1]));
+                            string.clone()[1..string.len()-1].to_string()));
                         break;
                     } else {
                         string.push(c);
