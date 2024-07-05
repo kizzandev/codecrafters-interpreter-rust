@@ -17,7 +17,7 @@ fn main() {
     let filename = &args[2];
 
     match command.as_str() {
-        "tokenize" => matchtokenize(filename) {
+        "tokenize" => match tokenize(filename) {
             Err(e) => {
                 exit(e.code());
             }
