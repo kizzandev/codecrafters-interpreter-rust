@@ -125,7 +125,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
                     tokens.push(Token::new(TokenType::DOT, ".".to_string()));
                 } else {
-                    if (!has_dot) {
+                    if !has_dot {
                         let value = number.clone();
                         number.push('.');
                         number.push('0');

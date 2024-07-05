@@ -28,6 +28,8 @@ pub enum TokenType {
     STRING,
     NUMBER,
 
+    IDENTIFIER,
+
     EOF,
 }
 
