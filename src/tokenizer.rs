@@ -4,6 +4,10 @@ use anyhow::bail;
 use crate::token::{Token, TokenType};
 use crate::error::{Error};
 
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
 pub fn tokenize(filename: &String) -> anyhow::Result<()> {
     let file_contents = match fs::read_to_string(filename) {
         Ok(contents) => contents,
@@ -11,7 +15,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
     };
     let mut chars = file_contents.chars();
 
-    eprintln!("Type of chars: {:?}", std::any::type_name::<_>(&chars));
+    print_type_of(&chars);
     
     let line = 1usize;
     let mut has_error = false;
