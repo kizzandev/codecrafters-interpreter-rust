@@ -21,7 +21,7 @@ fn main() {
     match command.as_str() {
         "tokenize" => match tokenize(filename) {
             Err(e) => {
-                let e: Error = e.into();
+                let e: Error = e.downcast().unwrap();
                 exit(e.exit_code as i32);
             }
             _ => {}
