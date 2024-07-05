@@ -131,6 +131,17 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         number.push('0');
                         tokens.push(Token::new_with_value(TokenType::NUMBER, value, number));
                     } else {
+                        let number = number.clone();
+
+                        // if multiple 0 after the dot, then leave only one
+                        // 1. check the last character
+                        // 2. if it is 0 and the preceding character is 0
+                        // 3. then remove the last character
+
+                        while number.chars().last() == Some('0') && number.chars().nth(number.len()-2) == Some('0') {
+                            number.pop();
+                        }
+
                         tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
                     }
                 }
