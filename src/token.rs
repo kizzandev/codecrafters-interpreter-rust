@@ -20,6 +20,10 @@ pub enum TokenType {
     EQUAL_EQUAL,
     BANG,
     BANG_EQUAL,
+    GREATER,
+    GREATER_EQUAL,
+    LESS,
+    LESS_EQUAL,
 
     EOF,
 }

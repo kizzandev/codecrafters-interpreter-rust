@@ -46,6 +46,24 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     tokens.push(Token::new(TokenType::BANG, c.to_string()));
                 }
             },
+            '<' => {
+                let mut peekable = chars.clone().peekable();
+                if peekable.next() == Some('=') {
+                    tokens.push(Token::new(TokenType::LESS_EQUAL, "<=".to_string()));
+                    chars.next();
+                } else {
+                    tokens.push(Token::new(TokenType::LESS, c.to_string()));
+                }
+            },
+            '>' => {
+                let mut peekable = chars.clone().peekable();
+                if peekable.next() == Some('=') {
+                    tokens.push(Token::new(TokenType::GREATER_EQUAL, ">=".to_string()));
+                    chars.next();
+                } else {
+                    tokens.push(Token::new(TokenType::GREATER, c.to_string()));
+                }
+            },
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
