@@ -10,6 +10,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
         Err(_) => bail!(Error::new(u8::MAX))
     };
     let mut chars = file_contents.chars();
+
+    eprintln!("Type of chars: {:?}", std::any::type_name::<_>(&chars));
     
     let line = 1usize;
     let mut has_error = false;
