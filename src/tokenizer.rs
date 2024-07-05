@@ -119,7 +119,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     }
                 }
                 let value = if let Some('.') = number.chars().last() {
-                    number.push('0');
+                    number.push('0');//
                     number[0..number.len()-2].to_string()
                 } else {
                     number.clone()
