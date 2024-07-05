@@ -105,10 +105,14 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 let mut has_dot = false;
                 while let Some(c) = chars.next() {
                     if c == '.' && !has_dot || c.is_ascii_digit() {
-                        number.push(c);
                         if c == '.' {
+                            let mut peekable = chars.clone().peekable();
+                            if !peekable.next().is_ascii_digit() {
+                                break;
+                            }
                             has_dot = true;
                         }
+                        number.push(c);
                     } else {
                         break;
                     }
