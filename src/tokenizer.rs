@@ -107,7 +107,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     if c == '.' && !has_dot || c.is_ascii_digit() {
                         if c == '.' {
                             let mut peekable = chars.clone().peekable();
-                            let Some(c) = peekable.next();
+                            let Some(c) = peekable.next() else { break; };
                             if !c.is_ascii_digit() {
                                 break;
                             }
