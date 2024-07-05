@@ -122,7 +122,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     number.push('0');
                     number[0..number.len()-1].to_string()
                 } else {
-                    number
+                    number.clone()
                 };
                 tokens.push(Token::new_with_value(TokenType::NUMBER, value, number.to_string()));
             }
