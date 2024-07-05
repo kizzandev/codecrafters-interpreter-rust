@@ -36,7 +36,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
             '=' => {
                 // peekable
-                let peekable = chars.peekable();
+                let mut peekable = chars.clone().peekable();
                 if peekable.next() == Some('=') {
                     tokens.push(Token::new(TokenType::EQUAL_EQUAL, "==".to_string()));
                     chars.next();
