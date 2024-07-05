@@ -123,7 +123,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     number[0..number.len()-1].to_string()
                 } else {
                     number
-                }
+                };
                 tokens.push(Token::new_with_value(TokenType::NUMBER, value, number.to_string()));
             }
             _ => {
