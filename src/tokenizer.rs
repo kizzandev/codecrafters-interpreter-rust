@@ -28,6 +28,13 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
             '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
             '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
+            '=' => {
+                if chars.next() == Some('=') {
+                    tokens.push(Token::new(TokenType::EQUAL_EQUAL, "==".to_string()));
+                } else {
+                    tokens.push(Token::new(TokenType::EQUAL, c.to_string()));
+                }
+            },
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
