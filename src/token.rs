@@ -18,6 +18,8 @@ pub enum TokenType {
 
     EQUAL,
     EQUAL_EQUAL,
+    BANG,
+    BANG_EQUAL,
 
     EOF,
 }
