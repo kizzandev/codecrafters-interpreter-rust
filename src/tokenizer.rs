@@ -1,16 +1,20 @@
 use std::fs;
-
-use crate::token::{Token, TokenType};
 use anyhow::bail;
 
+use crate::token::{Token, TokenType};
+use crate::error::{Error};
+
 pub fn tokenize(filename: &String) -> anyhow::Result<()> {
-    let file_contents = fs::read_to_string(filename)?;
+    let file_contents = match fs::read_to_string(filename) {
+        Ok(contents) => contents,
+        Err(e) => bail!(Error::new(u8::MAX))
+    };
     let mut chars = file_contents.chars();
-
-    let mut tokens = vec![];
-
+    
     let line = 1usize;
-
+    let mut has_error = false;
+    
+    let mut tokens = vec![];
     while let Some(c) = chars.next() {
         match c {
             '(' => tokens.push(Token::new(TokenType::LEFT_PAREN, c.to_string())),
@@ -24,7 +28,10 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
             ';' => tokens.push(Token::new(TokenType::SEMICOLON, c.to_string())),
             '*' => tokens.push(Token::new(TokenType::STAR, c.to_string())),
             '/' => tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string())),
-            _ => eprint!("[line {}] Error: Unexpected character: {}", line, c),
+            _ => {
+                eprint!("[line {}] Error: Unexpected character: {}", line, c)
+                has_error = true
+            },
         }
     }
 
@@ -34,5 +41,5 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
         println!("{}", token);
     }
 
-    Ok(())
+    return if has_error { bail!(Error::new(65)) } else { Ok(()) };
 }

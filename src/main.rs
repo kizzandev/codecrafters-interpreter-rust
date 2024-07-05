@@ -1,5 +1,7 @@
 use std::env;
+use std::process::exit;
 
+mod error;
 mod token;
 mod tokenizer;
 use crate::tokenizer::tokenize;
@@ -15,7 +17,12 @@ fn main() {
     let filename = &args[2];
 
     match command.as_str() {
-        "tokenize" => tokenize(filename).unwrap(),
+        "tokenize" => matchtokenize(filename) {
+            Err(e) => {
+                exit(e.code());
+            }
+            _ => {}
+        },
         _ => eprintln!("Unknown command: {}", command),
     }
 }
