@@ -11,7 +11,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
     };
     let mut chars = file_contents.chars();
     
-    let line = 1usize;
+    let mut line = 1usize;
     let mut has_error = false;
     
     let mut tokens = vec![];
@@ -75,7 +75,8 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                     tokens.push(Token::new(TokenType::GREATER, c.to_string()));
                 }
             },
-            // ' ' | '\t' | '\r' => continue,
+            ' ' | '\t' | '\r' => continue,
+            '\n' => line += 1,
             _ => {
                 eprintln!("[line {}] Error: Unexpected character: {}", line, c);
                 has_error = true
