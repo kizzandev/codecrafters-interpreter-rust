@@ -7,7 +7,7 @@ use crate::error::{Error};
 pub fn tokenize(filename: &String) -> anyhow::Result<()> {
     let file_contents = match fs::read_to_string(filename) {
         Ok(contents) => contents,
-        Err(e) => bail!(Error::new(u8::MAX))
+        Err(_) => bail!(Error::new(u8::MAX))
     };
     let mut chars = file_contents.chars();
     
