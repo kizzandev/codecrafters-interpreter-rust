@@ -26,7 +26,7 @@ impl Token {
 }
 
 impl Display for Token {
-    pub fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{:?} {} {}", self._type, self._string, self._value.clone().unwrap_or("null".to_string()))
     }
 }
