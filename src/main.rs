@@ -4,6 +4,8 @@ use std::process::exit;
 mod error;
 mod token;
 mod tokenizer;
+
+use crate::error::{Error};
 use crate::tokenizer::tokenize;
 
 fn main() {
@@ -19,7 +21,8 @@ fn main() {
     match command.as_str() {
         "tokenize" => match tokenize(filename) {
             Err(e) => {
-                exit(e.code());
+                let e: Error = e;
+                exit(e.exit_code);
             }
             _ => {}
         },
