@@ -122,7 +122,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 if let Some('.') = number.chars().last() {
                     number.push('0');
                     tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone()[0..number.len()-2].to_string(), number));
-                    tokens.push(Token::new_with_value(TokenType::DOT, ".".to_string(), ".".to_string()));
+                    tokens.push(Token::new(TokenType::DOT, ".".to_string()));
                 } else {
                     tokens.push(Token::new_with_value(TokenType::NUMBER, number.clone(), number));
                 }
