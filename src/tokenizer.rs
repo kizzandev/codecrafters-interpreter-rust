@@ -83,7 +83,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                 while let Some(c) = chars.next() {
                     if c == '"' {
                         let string_lit = "\"".to_string() + &string + "\"";
-                        tokens.push(Token::new_with_value(TokenType::STRING, string_lit, &string));
+                        tokens.push(Token::new_with_value(TokenType::STRING, string_lit, string.clone()));
                         break;
                     } else {
                         string.push(c);
