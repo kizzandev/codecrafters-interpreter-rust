@@ -36,7 +36,7 @@ pub fn tokenize(filename: &String) -> anyhow::Result<()> {
                         }
                     }
                 } else {
-                    tokens.push(Token::new(TokenType::FOWARD_SLASH, c.to_string()));
+                    tokens.push(Token::new(TokenType::SLASH, c.to_string()));
                 }
             },
             '=' => {
