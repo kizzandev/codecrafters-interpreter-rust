@@ -13,7 +13,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
             Token::StringLiteral(s) => println!("STRING \"{s}\" {s}"),
             Token::UnterminatedStringLiteral => {
                 success = false;
-                println!("[line {line}] ERROR: Unterminated string literal");
+                println!("[line {line}] ERROR: Unterminated string.");
             },
             Token::Number((raw_s, n)) => println!("NUMBER {raw_s} {n:?}"),
             Token::CharacterDouble(c1, c2) => {
