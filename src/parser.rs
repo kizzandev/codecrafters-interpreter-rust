@@ -11,7 +11,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
             Token::ReservedKeyword(k) => println!("{k}"),
             Token::Number((_, n)) => {
                 // We check the next token without advancing the iterator
-                let symbol = match lexer.peek() {
+                let symbol = match mut lexer.peek() {
                     Some((t, _)) => t,
                     None => break,
                 };

@@ -137,7 +137,7 @@ impl<'input> Iterator for Lexer<'input> {
                     }
                     (raw.parse::<f64>().unwrap(), raw.trim_end_matches("."))
                 } else {
-                    let (c_next_idx, c_next) = self.char_indicies[self.idx];
+                    let (c_next_idx, _c_next) = self.char_indicies[self.idx];
                     let raw = &self.contents[c_idx..c_next_idx];
                     if c.is_ascii_whitespace() {
                         (raw.parse::<f64>().unwrap(), raw)
@@ -196,6 +196,6 @@ impl<'input> Clone for Lexer<'input> {
 // Peek the next item
 impl<'input> Lexer<'input> {
     pub fn peek(&self) -> Option<&(Token<'input>, usize)> {
-        self.clone().next().as_ref()
+        self.clone().next()
     }
 }

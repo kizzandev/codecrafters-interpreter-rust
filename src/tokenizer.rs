@@ -3,7 +3,7 @@ use std::process::ExitCode;
 use crate::lexer::{Lexer, Token};
 
 pub fn tokenize(file_contents: &str) -> ExitCode {
-    let mut lexer = Lexer::new(&file_contents);
+    let lexer = Lexer::new(&file_contents);
     let mut success = true;
 
     for (token, line) in lexer {
@@ -48,7 +48,6 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                     println!("{one_of} {c} null")
                 }
             },
-            _ => unreachable!(),
         };
     };
     println!("EOF null");
