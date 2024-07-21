@@ -127,7 +127,9 @@ impl<'input> Iterator for Lexer<'input> {
         // Numbers
         if c.is_ascii_digit() {
             let mut has_dot = false;
+            self.idx -= 1;
             loop {
+                self.idx += 1;
                 let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
                     let raw = &self.contents[c_idx..]; // get rest of the string
