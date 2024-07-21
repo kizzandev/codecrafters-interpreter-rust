@@ -3,10 +3,10 @@ use std::process::ExitCode;
 use crate::lexer::{Lexer, Token};
 
 pub fn parse(file_contents: &str) -> ExitCode {
-    let lexer = Lexer::new(&file_contents);
+    let mut lexer = Lexer::new(&file_contents);
 
     loop {
-        let Some((t, line)) = lexer.next() else { break; };
+        let Some((t, _line)) = lexer.next() else { break; };
         match t {
             Token::ReservedKeyword(k) => println!("{k}"),
             Token::Number((_, n)) => {

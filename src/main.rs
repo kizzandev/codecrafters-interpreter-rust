@@ -25,5 +25,9 @@ fn main() -> ExitCode {
     return match command.as_str() {
         "tokenize" => tokenize(&file_contents),
         "parse" => parse(&file_contents),
+        _ => {
+            eprintln!("Usage: {} <action> <filename>", args[0]);
+            ExitCode::FAILURE
+        }
     };
 }

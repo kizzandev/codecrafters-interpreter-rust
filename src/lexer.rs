@@ -10,6 +10,7 @@ pub struct Lexer<'input> {
 }
 
 // The keywords to be used
+#[derive(Copy)]
 const RESERVED_KEYWORDS: &'static [&'static str] = &[
     "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print",
     "return", "super", "this", "true", "var", "while"
@@ -95,7 +96,7 @@ impl<'input> Iterator for Lexer<'input> {
                     ))
                 }
 
-                let (c_next_idx, c_next) = self.char_indicies[self.idx];
+                let (c_next_idx, _c_next) = self.char_indicies[self.idx];
                 if !c.is_ascii_alphanumeric() && c != '_' {
                     let id = &self.contents[c_idx..c_next_idx];
                     if self.reserved_keywords.contains(id) {
