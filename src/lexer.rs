@@ -1,8 +1,4 @@
 use std::collections::HashSet;
-use std::env;
-use std::fs;
-use std::io::{self, Write};
-use std::process::ExitCode;
 
 struct Lexer<'input> {
     contents: &'input str,                  // contents of the file

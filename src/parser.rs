@@ -1,13 +1,6 @@
-use std::fs;
-use anyhow::bail;
-
-use std::collections::HashSet;
-use std::env;
-use std::fs;
 use std::io::{self, Write};
 use std::process::ExitCode;
 
-use crate::error::{Error};
 use crate::lexer::{Lexer, Token};
 
 pub fn parse(file_contents: &str) -> ExitCode {

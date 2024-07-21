@@ -1,7 +1,5 @@
-use std::fs;
-use anyhow::bail;
-
-use crate::error::{Error};
+use std::io::{self, Write};
+use std::process::ExitCode;
 
 use crate::lexer::{Lexer, Token};
 

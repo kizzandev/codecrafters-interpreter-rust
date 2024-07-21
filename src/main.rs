@@ -1,15 +1,14 @@
 use std::env;
-use std::process::exit;
+use std::process::ExitCode;
 
-mod error;
-mod token;
 mod tokenizer;
 mod parser;
+mod lib;
+mod lexer;
 
-use crate::error::{Error};
 use crate::tokenizer::tokenize;
 use crate::parser::parse;
-use create::lib::{read_file};
+use crate::lib::{read_file};
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
