@@ -82,6 +82,7 @@ impl<'input> Iterator for Lexer<'input> {
 
         // Keywords and identifiers
         if c.is_alphabetic() || c == '_' {
+            eprintln!("Identifier or keyword");
             loop {
                 // Check if we are at the end
                 if self.idx >= self.char_indicies.len() {
