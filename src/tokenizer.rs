@@ -8,8 +8,8 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
 
     for (token, line) in lexer {
         match token {
-            Token::ReservedKeyword(k) => println!("{} {} null", k.to_uppercase(), k),
-            Token::Identifier(i) => println!("IDENTIFIER {} null", i),
+            Token::ReservedKeyword(k) => println!("{} {k} null", k.to_uppercase()),
+            Token::Identifier(i) => println!("IDENTIFIER {i} null"),
             Token::StringLiteral(s) => println!("STRING \"{s}\" {s}"),
             Token::UnterminatedStringLiteral => {
                 success = false;
@@ -22,8 +22,6 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                     ('!', '=') => "BANG_EQUAL",
                     ('<', '=') => "LESS_EQUAL",
                     ('>', '=') => "GREATER_EQUAL",
-                    ('&', '&') => "AMPERSAND_AMPERSAND",
-                    ('|', '|') => "BAR_BAR",
                     _ => unreachable!(),
                 };
                 println!("{one_of} {c1}{c2} null")

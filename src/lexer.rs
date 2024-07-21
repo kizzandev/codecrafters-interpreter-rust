@@ -17,7 +17,7 @@ const RESERVED_KEYWORDS: &'static [&'static str] = &[
 
 // Two characters that works as a single token
 const DOUBLE_CHARACTERS: &'static [(char, char)] = &[
-    ('=', '='), ('!', '='), ('<', '='), ('>', '='), ('/', '/'), ('&', '&'), ('|', '|'),
+    ('=', '='), ('!', '='), ('<', '='), ('>', '='), ('/', '/')
 ];
 
 impl<'input> Lexer<'input> {
