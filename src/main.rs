@@ -14,7 +14,7 @@ fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
     if args.len() < 3 {
         eprintln!("Usage: {} tokenize <filename>", args[0]);
-        return ExitCode::FAILURE;
+        return ExitCode::from(65);
     }
 
     let command = &args[1];
@@ -27,7 +27,7 @@ fn main() -> ExitCode {
         "parse" => parse(&file_contents),
         _ => {
             eprintln!("Usage: {} <action> <filename>", args[0]);
-            ExitCode::FAILURE
+            ExitCode::from(65)
         }
     };
 }

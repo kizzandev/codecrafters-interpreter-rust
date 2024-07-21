@@ -11,7 +11,10 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
             Token::ReservedKeyword(k) => println!("{} {} null", k.to_uppercase(), k),
             Token::Identifier(i) => println!("IDENTIFIER {} null", i),
             Token::StringLiteral(s) => println!("STRING \"{s}\" {s}"),
-            Token::UnterminatedStringLiteral => success = false,
+            Token::UnterminatedStringLiteral => {
+                success = false;
+                println!("[line {line}] ERROR: Unterminated string literal");
+            },
             Token::Number((raw_s, n)) => println!("NUMBER {raw_s} {n:?}"),
             Token::CharacterDouble(c1, c2) => {
                 let one_of = match (c1, c2) {
@@ -45,8 +48,8 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                     _ => "UNKNOWN",
                 };
                 if one_of == "UNKNOWN" {
-                    eprintln!("[line {line}] Error: Unknown character: {c}");
                     success = false;
+                    eprintln!("[line {line}] Error: Unknown character: {c}");
                 } else {
                     println!("{one_of} {c} null")
                 }
