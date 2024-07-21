@@ -47,7 +47,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                 };
                 if one_of == "UNKNOWN" {
                     success = false;
-                    eprintln!("[line {line}] Error: Unknown character: {c}");
+                    eprintln!("[line {line}] Error: Unexpected character: {c}");
                 } else {
                     println!("{one_of} {c} null")
                 }
