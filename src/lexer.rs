@@ -97,8 +97,8 @@ impl<'input> Iterator for Lexer<'input> {
                         self.line
                     ))
                 };
-                let (c_next_idx, _c_next) = self.char_indices[self.idx];
-                if !c.is_ascii_alphanumeric() && c != '_' {
+                let (c_next_idx, c_next) = self.char_indices[self.idx];
+                if !c_next.is_ascii_alphanumeric() && c_next != '_' {
                     let id = &self.contents[c_idx..c_next_idx];
                     if self.reserved_keywords.contains(id) {
                         return Some((Token::ReservedKeyword(id), self.line));
