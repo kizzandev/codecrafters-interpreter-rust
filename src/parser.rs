@@ -17,7 +17,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 };
                 match symbol {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
-                        // It's a binary operation!!
+                        // It's a binary operation
                         // Next-ed twice because the peek() clones the iterator
                         lexer.next();
                         let n2 = lexer.next().unwrap().0;
@@ -32,7 +32,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 }
             },
             _ => todo!(),
-        }
+        };
     }
     ExitCode::SUCCESS
 }
