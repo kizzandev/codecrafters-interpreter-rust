@@ -104,6 +104,7 @@ impl<'input> Iterator for Lexer<'input> {
                 };
                 self.idx += 1;
             }
+            self.idx -= 1;
         }
 
         // Strings
