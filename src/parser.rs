@@ -26,14 +26,14 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             Token::Number((_, n2)) => {
                                 println!("({c} {n:?} {n2:?})");
                             },
-                            _ => todo!(),
+                            _ => eprintln!("NaN"),
                         }
                     }
-                    _ => todo!(),
+                    _ => eprintln!("Another SYMBOL"),
                 }
             },
-            _ => eprintln!("Other TOKEN TYPE"),
+            _ => eprintln!("Another TOKEN TYPE"),
         };
-    }
+    };
     ExitCode::SUCCESS
 }
