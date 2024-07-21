@@ -4,10 +4,11 @@ use std::process::ExitCode;
 mod tokenizer;
 mod parser;
 mod lexer;
+mod loclib;
 
 use crate::tokenizer::tokenize;
 use crate::parser::parse;
-use crate::lib::read_file;
+use crate::loclib::read_file;
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
