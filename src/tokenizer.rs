@@ -11,6 +11,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
             Token::ReservedKeyword(k) => println!("{} {} null", k.to_uppercase(), k),
             Token::Identifier(i) => println!("IDENTIFIER {} null", i),
             Token::StringLiteral(s) => println!("STRING \"{s}\" {s}"),
+            Token::UnterminatedStringLiteral => success = false,
             Token::Number((raw_s, n)) => println!("NUMBER {raw_s} {n:?}"),
             Token::CharacterDouble(c1, c2) => {
                 let one_of = match (c1, c2) {
