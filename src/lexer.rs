@@ -85,6 +85,7 @@ impl<'input> Iterator for Lexer<'input> {
                 // Check if we are at the end
                 if self.idx >= self.char_indices.len() {
                     let identifier = &self.contents[c_idx..]; // extract the identifier
+                    eprintln!("ID: {identifier}");
                     if self.reserved_keywords.contains(identifier) {
                         return Some((Token::ReservedKeyword(identifier), self.line));
                     }
@@ -104,7 +105,7 @@ impl<'input> Iterator for Lexer<'input> {
                 };
                 self.idx += 1;
             }
-            self.idx -= 1;
+            // self.idx -= 1;
         }
 
         // Strings
