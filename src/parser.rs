@@ -19,7 +19,8 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
                         // It's a binary operation!!
                         // Next-ed twice because the peek() clones the iterator
-                        let n2 = lexer.next().next().unwrap().0;
+                        lexer.next();
+                        let n2 = lexer.next().unwrap().0;
                         match n2 {
                             Token::Number((_, n2)) => {
                                 println!("({c} {n:?} {n2:?})");
