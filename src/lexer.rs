@@ -83,8 +83,9 @@ impl<'input> Iterator for Lexer<'input> {
         if c.is_alphabetic() || c == '_' {
             loop {
                 // Check if we are at the end
-                eprintln!("char_indices len: {}", self.char_indices.len());
                 if self.idx >= self.char_indices.len() {
+                    eprintln!("idx: {}", self.idx);
+                    eprintln!("char_indices len: {}", self.char_indices.len());
                     let identifier = &self.contents[c_idx..]; // extract the identifier
                     eprintln!("ID: |{identifier}|");
                     if self.reserved_keywords.contains(identifier) {
