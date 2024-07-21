@@ -149,9 +149,9 @@ impl<'input> Iterator for Lexer<'input> {
                             continue;
                         };
                         (raw.parse::<f64>().unwrap(), raw)
-                    } else { continue; };
-                    (raw.parse::<f64>().unwrap(), raw)
-                    
+                    } else {
+                        continue;
+                    }
                 };
                 return Some((Token::Number((n_raw, n)), self.line));
             }
