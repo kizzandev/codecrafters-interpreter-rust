@@ -32,7 +32,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     _ => todo!(),
                 }
             },
-            _ => todo!(),
+            _ => eprintln!("Other TOKEN TYPE"),
         };
     }
     ExitCode::SUCCESS
