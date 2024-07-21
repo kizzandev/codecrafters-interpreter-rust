@@ -19,6 +19,8 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                     ('!', '=') => "BANG_EQUAL",
                     ('<', '=') => "LESS_EQUAL",
                     ('>', '=') => "GREATER_EQUAL",
+                    ('&', '&') => "AMPERSAND_AMPERSAND",
+                    ('|', '|') => "BAR_BAR",
                     _ => unreachable!(),
                 };
                 println!("{one_of} {c1}{c2} null")
