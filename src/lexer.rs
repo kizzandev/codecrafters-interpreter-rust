@@ -126,7 +126,7 @@ impl<'input> Iterator for Lexer<'input> {
 
         // Numbers
         if c.is_ascii_digit() {
-            let mut seen_digit = false;
+            let mut has_dot = false;
             loop {
                 let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
@@ -139,13 +139,13 @@ impl<'input> Iterator for Lexer<'input> {
                     }
                     (raw.parse::<f64>().unwrap(), raw.trim_end_matches("."))
                 } else {
-                    let (c_next_idx, _c_next) = self.char_indices[self.idx];
+                    let (c_next_idx, c_next) = self.char_indices[self.idx];
                     let raw = &self.contents[c_idx..c_next_idx];
-                    if c.is_ascii_whitespace() {
+                    if c_next.is_ascii_whitespace() {
                         (raw.parse::<f64>().unwrap(), raw)
-                    } else if !c.is_ascii_digit() {
-                        if c == '.' && !seen_digit {
-                            seen_digit = true;
+                    } else if !c_next.is_ascii_digit() {
+                        if c_next == '.' && !has_dot {
+                            has_dot = true;
                             continue;
                         };
                         (raw.parse::<f64>().unwrap(), raw)
