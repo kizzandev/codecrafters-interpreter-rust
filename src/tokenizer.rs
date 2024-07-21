@@ -49,7 +49,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                 }
             },
             _ => {
-                eprintln!("[line {line}] Error: Unexpected token: {token}");
+                eprintln!("[line {line}] Error: Unexpected token: {token:?}");
                 success = false;
             },
         };

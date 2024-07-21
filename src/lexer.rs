@@ -41,6 +41,7 @@ impl<'input> Lexer<'input> {
 
 // Any Token may be one of the following
 // Using enum for the Named Tuples
+#[derive(Debug)]
 pub enum Token<'input> {
     ReservedKeyword(&'input str),
     Identifier(&'input str),
