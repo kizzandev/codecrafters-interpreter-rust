@@ -14,7 +14,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 println!("{k}")
             },
             Token::Number((_, n)) => {
-                eprintln!("TOKEN: Number")
+                eprintln!("TOKEN: Number");
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
