@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 pub struct Lexer<'input> {
     contents: &'input str,                  // contents of the file
-    char_indices: Vec<(usize, char)>,      // each char and its index
+    char_indices: Vec<(usize, char)>,       // each char and its index
     idx: usize,                             // current index
     line: usize,                            // current line
     is_comment: bool,                       // whether the current token is a comment
@@ -30,7 +30,7 @@ impl<'input> Lexer<'input> {
             contents,
             char_indices: contents
                             .char_indices()        // get the char indicies
-                            .collect::<Vec<_>>(),   // convert the char indicies to a vector
+                            .collect::<Vec<_>>(),  // convert the char indicies to a vector
             idx: 0,
             line: 1,
             is_comment: false,
