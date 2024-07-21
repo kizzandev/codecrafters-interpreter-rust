@@ -50,7 +50,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
             },
         };
     };
-    println!("EOF null");
+    println!("EOF  null");
     if !success { return ExitCode::from(65); }
     ExitCode::SUCCESS
 }
