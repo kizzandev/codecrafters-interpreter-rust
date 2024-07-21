@@ -9,11 +9,9 @@ pub fn parse(file_contents: &str) -> ExitCode {
         let Some((t, _line)) = lexer.next() else { break; };
         match t {
             Token::ReservedKeyword(k) => {
-                eprintln!("TOKEN: ReservedKeyword");
                 println!("{k}")
             },
             Token::Number((_, n)) => {
-                eprintln!("TOKEN: Number");
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
@@ -29,13 +27,13 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             Token::Number((_, n2)) => {
                                 println!("({c} {n:?} {n2:?})");
                             },
-                            _ => eprintln!("NaN"),
+                            _ => todo!(),
                         }
                     }
-                    _ => eprintln!("Another SYMBOL"),
+                    _ => todo!(),
                 }
             },
-            _ => eprintln!("TOKEN: <something_else>"),
+            _ => todo!(),
         }
     };
     ExitCode::SUCCESS

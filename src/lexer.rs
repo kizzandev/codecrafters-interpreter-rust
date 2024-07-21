@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 pub struct Lexer<'input> {
     contents: &'input str,                  // contents of the file
-    char_indicies: Vec<(usize, char)>,      // each char and its index
+    char_indices: Vec<(usize, char)>,      // each char and its index
     idx: usize,                             // current index
     line: usize,                            // current line
     is_comment: bool,                       // whether the current token is a comment
@@ -28,7 +28,7 @@ impl<'input> Lexer<'input> {
                                 .collect();     // collects the vector into a HashSet
         Self {
             contents,
-            char_indicies: contents
+            char_indices: contents
                             .char_indices()        // get the char indicies
                             .collect::<Vec<_>>(),   // convert the char indicies to a vector
             idx: 0,
@@ -56,13 +56,12 @@ impl<'input> Iterator for Lexer<'input> {
     type Item = (Token<'input>, usize);
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx >= self.char_indicies.len() {
-            eprintln!("EOF reached");
+        if self.idx >= self.char_indices.len() {
             return None;
         }
 
         // Get the current char and increment the index
-        let (c_idx, c) = self.char_indicies[self.idx];
+        let (c_idx, c) = self.char_indices[self.idx];
         self.idx += 1;
 
         // Newline
@@ -84,7 +83,7 @@ impl<'input> Iterator for Lexer<'input> {
         if c.is_alphabetic() || c == '_' {
             loop {
                 // Check if we are at the end
-                if self.idx >= self.char_indicies.len() {
+                if self.idx >= self.char_indices.len() {
                     let identifier = &self.contents[c_idx..]; // extract the identifier
                     if self.reserved_keywords.contains(identifier) {
                         return Some((Token::ReservedKeyword(identifier), self.line));
@@ -94,29 +93,28 @@ impl<'input> Iterator for Lexer<'input> {
                         Token::Identifier(identifier),
                         self.line
                     ))
-                }
-
-                let (c_next_idx, _c_next) = self.char_indicies[self.idx];
+                };
+                let (c_next_idx, _c_next) = self.char_indices[self.idx];
                 if !c.is_ascii_alphanumeric() && c != '_' {
                     let id = &self.contents[c_idx..c_next_idx];
                     if self.reserved_keywords.contains(id) {
                         return Some((Token::ReservedKeyword(id), self.line));
                     }
                     return Some((Token::Identifier(id), self.line));
-                }
+                };
+                self.idx += 1;
             }
-            eprintln!("LOOP END")
         }
 
         // Strings
         if c == '"' {
             loop {
                 // Check if we are at the end
-                if self.idx >= self.char_indicies.len() {
+                if self.idx >= self.char_indices.len() {
                     return Some((Token::StringLiteral(&self.contents[c_idx..]), self.line));
                 }
 
-                let (c_next_idx, c_next) = self.char_indicies[self.idx];
+                let (c_next_idx, c_next) = self.char_indices[self.idx];
                 if c_next == '"' {
                     self.idx += 1;
                     return Some((Token::StringLiteral(&self.contents[c_idx..c_next_idx]), self.line));
@@ -128,18 +126,18 @@ impl<'input> Iterator for Lexer<'input> {
         if c.is_ascii_digit() {
             let mut seen_digit = false;
             loop {
-                let (n, n_raw) = if self.idx >= self.char_indicies.len() {
+                let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
                     let raw = &self.contents[c_idx..]; // get rest of the string
                     // Possible edge case where the last character is NOT
                     // a valid value
-                    let (_, c) = self.char_indicies[self.idx - 1];
+                    let (_, c) = self.char_indices[self.idx - 1];
                     if c != ' ' && c != '\t' && c != '\n' && !c.is_ascii_digit() {
                         self.idx -= 1;
                     }
                     (raw.parse::<f64>().unwrap(), raw.trim_end_matches("."))
                 } else {
-                    let (c_next_idx, _c_next) = self.char_indicies[self.idx];
+                    let (c_next_idx, _c_next) = self.char_indices[self.idx];
                     let raw = &self.contents[c_idx..c_next_idx];
                     if c.is_ascii_whitespace() {
                         (raw.parse::<f64>().unwrap(), raw)
@@ -160,8 +158,8 @@ impl<'input> Iterator for Lexer<'input> {
         // Double characters
         for (start, next) in DOUBLE_CHARACTERS {
             // self.idx is already incremented
-            if c == *start && self.idx < self.char_indicies.len() {
-                let (_, c_next) = self.char_indicies[self.idx];
+            if c == *start && self.idx < self.char_indices.len() {
+                let (_, c_next) = self.char_indices[self.idx];
                 if c_next == *next {
                     self.idx += 1;
                     // Check if its a comment
@@ -176,7 +174,7 @@ impl<'input> Iterator for Lexer<'input> {
 
         // Single characters
         return Some((Token::Character(
-                        self.char_indicies[self.idx - 1].1),
+                        self.char_indices[self.idx - 1].1),
                         self.line));
     }
 }
@@ -186,7 +184,7 @@ impl<'input> Clone for Lexer<'input> {
     fn clone(&self) -> Self {
         Self {
             contents: self.contents,
-            char_indicies: self.char_indicies.clone(),
+            char_indices: self.char_indices.clone(),
             idx: self.idx,
             line: self.line,
             is_comment: self.is_comment,
