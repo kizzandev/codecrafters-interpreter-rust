@@ -57,6 +57,7 @@ impl<'input> Iterator for Lexer<'input> {
 
     fn next(&mut self) -> Option<Self::Item> {
         if self.idx >= self.char_indicies.len() {
+            eprintln!("EOF reached");
             return None;
         }
 
