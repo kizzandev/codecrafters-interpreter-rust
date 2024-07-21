@@ -47,6 +47,7 @@ pub enum Token<'input> {
     Identifier(&'input str),
     Number((&'input str, f64)),
     StringLiteral(&'input str),
+    UnterminatedStringLiteral,
     Character(char),
     CharacterDouble(char, char),
 }
@@ -111,13 +112,13 @@ impl<'input> Iterator for Lexer<'input> {
             loop {
                 // Check if we are at the end
                 if self.idx >= self.char_indices.len() {
-                    return Some((Token::StringLiteral(&self.contents[c_idx..]), self.line));
+                    return Some((Token::UnterminatedStringLiteral, self.line));
                 }
 
                 let (c_next_idx, c_next) = self.char_indices[self.idx];
                 if c_next == '"' {
                     self.idx += 1;
-                    return Some((Token::StringLiteral(&self.contents[c_idx..c_next_idx]), self.line));
+                    return Some((Token::StringLiteral(&self.contents[c_idx + 1..c_next_idx]), self.line));
                 }
                 self.idx += 1;
             }
