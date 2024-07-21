@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-struct Lexer<'input> {
+pub struct Lexer<'input> {
     contents: &'input str,                  // contents of the file
     char_indicies: Vec<(usize, char)>,      // each char and its index
     idx: usize,                             // current index
@@ -13,15 +13,15 @@ struct Lexer<'input> {
 const RESERVED_KEYWORDS: &'static [&'static str] = &[
     "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print",
     "return", "super", "this", "true", "var", "while"
-]
+];
 
 // Two characters that works as a single token
 const DOUBLE_CHARACTERS: &'static [(char, char)] = &[
     ('=', '='), ('!', '='), ('<', '='), ('>', '='), ('/', '/')
-]
+];
 
 impl<'input> Lexer<'input> {
-    fn new(contents: &'input str) -> Self {
+    pub fn new(contents: &'input str) -> Self {
         let reserved_keywords = RESERVED_KEYWORDS
                                 .iter()         // iterates over the array
                                 .map(|k| *k)    // converts the array to a vector
@@ -29,7 +29,7 @@ impl<'input> Lexer<'input> {
         Self {
             contents,
             char_indicies: contents
-                            .char_indicies()        // get the char indicies
+                            .char_indices()        // get the char indicies
                             .collect::<Vec<_>>(),   // convert the char indicies to a vector
             idx: 0,
             line: 1,
@@ -41,7 +41,7 @@ impl<'input> Lexer<'input> {
 
 // Any Token may be one of the following
 // Using enum for the Named Tuples
-enum Token<'input> {
+pub enum Token<'input> {
     ReservedKeyword(&'input str),
     Identifier(&'input str),
     Number((&'input str, f64)),
@@ -66,7 +66,7 @@ impl<'input> Iterator for Lexer<'input> {
         // Newline
         if c == '\n' {
             self.line += 1;
-            if (self.is_comment) {
+            if self.is_comment {
                 self.is_comment = false; // reset the comment flag
             }
             return self.next();
@@ -89,7 +89,7 @@ impl<'input> Iterator for Lexer<'input> {
                     }
                     // Not a reserved keyword
                     return Some((
-                        Lexer::Identifier(identifier),
+                        Token::Identifier(identifier),
                         self.line
                     ))
                 }
@@ -195,6 +195,6 @@ impl<'input> Clone for Lexer<'input> {
 // Peek the next item
 impl<'input> Lexer<'input> {
     pub fn peek(&self) -> Option<&(Token<'input>, usize)> {
-        self.clone().next()
+        self.clone().next().as_ref()
     }
 }
