@@ -195,7 +195,7 @@ impl<'input> Clone for Lexer<'input> {
 
 // Peek the next item
 impl<'input> Lexer<'input> {
-    pub fn peek(&self) -> Option<&(Token<'input>, usize)> {
+    pub fn peek(&self) -> Option<Self::Item> {
         self.clone().next()
     }
 }
