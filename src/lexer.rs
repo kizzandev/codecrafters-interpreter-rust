@@ -10,7 +10,6 @@ pub struct Lexer<'input> {
 }
 
 // The keywords to be used
-#[derive(Copy)]
 const RESERVED_KEYWORDS: &'static [&'static str] = &[
     "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print",
     "return", "super", "this", "true", "var", "while"
@@ -189,7 +188,7 @@ impl<'input> Clone for Lexer<'input> {
             idx: self.idx,
             line: self.line,
             is_comment: self.is_comment,
-            reserved_keywords: self.reserved_keywords
+            reserved_keywords: RESERVED_KEYWORDS.iter().map(|k| *k).collect(),
         }
     }
 }
