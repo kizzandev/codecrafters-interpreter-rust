@@ -82,7 +82,6 @@ impl<'input> Iterator for Lexer<'input> {
 
         // Keywords and identifiers
         if c.is_alphabetic() || c == '_' {
-            eprintln!("Identifier or keyword");
             loop {
                 // Check if we are at the end
                 if self.idx >= self.char_indicies.len() {
@@ -106,6 +105,7 @@ impl<'input> Iterator for Lexer<'input> {
                     return Some((Token::Identifier(id), self.line));
                 }
             }
+            eprintln!("LOOP END")
         }
 
         // Strings

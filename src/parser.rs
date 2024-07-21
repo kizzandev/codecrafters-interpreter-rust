@@ -6,9 +6,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
     let mut lexer = Lexer::new(&file_contents);
 
     loop {
-        eprintln!("Parse LOOP");
         let Some((t, _line)) = lexer.next() else { break; };
-        eprintln!("Start to match the token...");
         match t {
             Token::ReservedKeyword(k) => {
                 eprintln!("TOKEN: ReservedKeyword");
