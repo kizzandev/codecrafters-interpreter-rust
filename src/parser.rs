@@ -9,8 +9,12 @@ pub fn parse(file_contents: &str) -> ExitCode {
         eprintln!("Parse LOOP");
         let Some((t, _line)) = lexer.next() else { break; };
         match t {
-            Token::ReservedKeyword(k) => println!("{k}"),
+            Token::ReservedKeyword(k) => {
+                eprintln!("TOKEN: ReservedKeyword");
+                println!("{k}")
+            },
             Token::Number((_, n)) => {
+                eprintln!("TOKEN: Number")
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
@@ -32,7 +36,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     _ => eprintln!("Another SYMBOL"),
                 }
             },
-            _ => eprintln!("Another TOKEN TYPE"),
+            _ => eprintln!("TOKEN: <something_else>"),
         };
     };
     ExitCode::SUCCESS
