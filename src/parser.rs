@@ -67,7 +67,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 has_content = true;
             }
             Token::Character('-') => {
-                result.push_str(&format!("(- {})", recursive_parse(lexer, 0)?));
+                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?));
                 has_content = true;
             }
             _ => todo!(),
