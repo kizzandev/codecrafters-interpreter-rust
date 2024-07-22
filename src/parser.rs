@@ -47,7 +47,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 result.push_str(s)
             }
             Token::Character('(') => {
-                has_content = true
+                has_content = true;
                 result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
             }
             Token::Character(')') => {
