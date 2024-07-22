@@ -13,10 +13,12 @@ pub fn parse(file_contents: &str) -> ExitCode {
             },
             Token::Number((_, n)) => {
                 // We check the next token without advancing the iterator
-                eprintln!("eNumber: {n}");
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
-                    None => None,
+                    None => {
+                        println!("{n}");
+                        continue;
+                    },
                 };
                 match symbol {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
@@ -31,12 +33,10 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             _ => todo!(),
                         }
                     }
-                    None => {
-                        println!("{n}")
-                    },
+                    _ => todo!(),
                 }
             },
-            _ => eprintln!("TOKEN: {t:?}"),
+            _ => todo!(),
         }
     };
     ExitCode::SUCCESS
