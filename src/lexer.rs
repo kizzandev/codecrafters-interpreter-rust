@@ -157,7 +157,8 @@ impl<'input> Iterator for Lexer<'input> {
                 };
 
                 if !has_dot { 
-                    return Some((Token::Number((&(n_raw.to_string() + ".0"), n)), self.line));
+                    let n_raw = n_raw + ".0";
+                    return Some((Token::Number((n_raw, n)), self.line));
                 }
                 return Some((Token::Number((n_raw, n)), self.line));
             }
