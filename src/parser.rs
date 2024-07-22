@@ -79,8 +79,8 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     Token::Character('/') => "/",
                     _ => unreachable!(),
                 };
-                let left = result;
-                let right = recursive_parse(lexer, depth)?;
+                let left = result.clone();
+                let right = recursive_parse(lexer, depth + 1)?;
                 result = format!("({op} {left} {right})");
             }
             _ => todo!(),
