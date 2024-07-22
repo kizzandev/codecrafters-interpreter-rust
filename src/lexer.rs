@@ -52,6 +52,20 @@ pub enum Token<'input> {
     CharacterDouble(char, char),
 }
 
+impl Token<'_> {
+    pub fn as_str(&self) -> &'_ str {
+        match self {
+            Token::ReservedKeyword(k) => k,
+            Token::Identifier(k) => k,
+            Token::Number((k, _)) => k,
+            Token::StringLiteral(k) => k,
+            Token::Character(k) => &k.to_string(),
+            Token::CharacterDouble(a, b) => &a.to_string() + &b.to_string(),
+            Token::UnterminatedStringLiteral => "Unterminated string literal",
+        }
+    }
+}
+
 // My current favourite looper thingy
 impl<'input> Iterator for Lexer<'input> {
     type Item = (Token<'input>, usize);
