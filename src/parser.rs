@@ -62,21 +62,21 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 return Ok(result + ")");
             }
             Token::Character('!') => {
-                result.push_str(&format!("(! {})", recursive_parse(lexer, depth)?));
+                result.push_str(&format!("(! {})", recursive_parse(lexer, 0)?));
                 has_content = true;
             }
             Token::Character('-') => {
-                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?));
+                result.push_str(&format!("(- {})", recursive_parse(lexer, 0)?));
                 has_content = true;
             }
             _ => todo!(),
         }
     }
     
-    // if depth > 0 {
-    //     eprintln!("Error: Unmatched parentheses.");
-    //     return Err(ExitCode::from(65));
-    // }
+    if depth > 0 {
+        eprintln!("Error: Unmatched parentheses.");
+        return Err(ExitCode::from(65));
+    }
     Ok(result)
 }
 
