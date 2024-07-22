@@ -39,6 +39,30 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 }
             },
             Token::StringLiteral(s) => println!("{s}"),
+            Token::Character(paren) if paren == '(' => {
+                let mut group_content = String::new();
+                let mut depth = 1;
+
+                while let Some((t, _)) = lexer.next() {
+                    match t {
+                        Token::Character('(') => {
+                            depth += 1;
+                            group_content.push('(');
+                        }
+                        Token::Character(')') => {
+                            depth -= 1;
+                            if depth == 0 { break; }
+                            group_content.push(')');
+                        }
+                        _ => group_content.push_str(&format!("{t:?}")),
+                    }
+                }
+                if depth != 0 {
+                    println!("Error: Unmatched parentheses.");
+                } else {
+                    println!("(group {group_content})");
+                }
+            }
             _ => todo!(),
         }
     };
