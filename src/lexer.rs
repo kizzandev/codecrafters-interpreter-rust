@@ -53,22 +53,22 @@ pub enum Token<'input> {
 }
 
 impl Token<'_> {
-    pub fn as_str(&self) -> &'_ str {
+    fn to_string(&self) -> String {
         match self {
-            Token::ReservedKeyword(k) => k,
-            Token::Identifier(k) => k,
-            Token::Number((k, _)) => k,
-            Token::StringLiteral(k) => k,
-            Token::Character(k) => {
-                let s = k.to_string();
-                s.as_str()
-            },
-            Token::CharacterDouble(a, b) => {
-                let s = format!("{a}{b}");
-                s.as_str()
-            },
-            Token::UnterminatedStringLiteral => "Unterminated string literal",
+            Token::ReservedKeyword(k) => k.to_string(),
+            Token::Identifier(i) => i.to_string(),
+            Token::Number((_, n)) => n.to_string(),
+            Token::StringLiteral(s) => s.to_string(),
+            Token::Character(c) => c.to_string(),
+            Token::CharacterDouble(c1, c2) => format!("{c1}{c2}"),
+            Token::UnterminatedStringLiteral => "Unterminated string literal".to_string(),
         }
+    }
+}
+
+impl std::fmt::Display for Token<'_> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.to_string())
     }
 }
 
