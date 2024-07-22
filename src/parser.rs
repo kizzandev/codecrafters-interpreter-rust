@@ -8,15 +8,12 @@ pub fn parse(file_contents: &str) -> ExitCode {
     loop {
         let Some((t, _line)) = lexer.next() else { break; };
         match t {
-            Token::ReservedKeyword(k) => {
-                println!("{k}")
-            },
+            Token::ReservedKeyword(k) => println!("{k}"),
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
-                        // If n_raw does not have a dot, add it
                         if !n_raw.contains('.') {
                             println!("{n_raw}.0");
                         } else {
@@ -41,6 +38,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     _ => todo!(),
                 }
             },
+            Token::StringLiteral(s) => println!("{s}"),
             _ => todo!(),
         }
     };
