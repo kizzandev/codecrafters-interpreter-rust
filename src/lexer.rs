@@ -156,12 +156,6 @@ impl<'input> Iterator for Lexer<'input> {
                     }
                 };
 
-                let n_raw = if !has_dot {
-                    Box::leak(format!("{n_raw}.0").into_boxed_str())
-                } else {
-                    n_raw
-                };
-                eprintln!("The raw number is {n_raw}");
                 return Some((Token::Number((n_raw, n)), self.line));
             }
         }
