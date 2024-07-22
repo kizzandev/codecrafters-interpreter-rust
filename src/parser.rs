@@ -2,22 +2,21 @@ use std::process::ExitCode;
 
 use crate::lexer::{Lexer, Token};
 
-pub fn parse(file_contents: &str) -> ExitCode {
-    let mut lexer = Lexer::new(&file_contents);
+fn recursive_parse(lexer: &mut Lexer, depth: usize) -> String {
+    let mut result = String::new();
 
-    loop {
-        let Some((t, _line)) = lexer.next() else { break; };
+    while let Some((t, _line)) = lexer.next() {
         match t {
-            Token::ReservedKeyword(k) => println!("{k}"),
+            Token::ReservedKeyword(k) => result.push_str(k),
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
                         if !n_raw.contains('.') {
-                            println!("{n_raw}.0");
+                            result.push_str(&format!("{n_raw}.0"));
                         } else {
-                            println!("{n_raw}");
+                            result.push_str(n_raw);
                         }
                         continue;
                     },
@@ -30,7 +29,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                         let n2 = lexer.next().unwrap().0;
                         match n2 {
                             Token::Number((_, n2)) => {
-                                println!("({c} {n:?} {n2:?})");
+                                result.push_str(&format!("{c} {n:?} {n2:?}"));
                             },
                             _ => todo!(),
                         }
@@ -38,42 +37,29 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     _ => todo!(),
                 }
             },
-            Token::StringLiteral(s) => println!("{s}"),
-            Token::Character(paren) if paren == '(' => {
-                let mut group_content = String::new();
-                let mut depth = 1;
-
-                while let Some((inner_t, _)) = lexer.next() {
-                    match inner_t {
-                        Token::Character('(') => {
-                            depth += 1;
-                            group_content.push('(');
-                        }
-                        Token::Character(')') => {
-                            depth -= 1;
-                            if depth == 0 { break; }
-                            group_content.push(')');
-                        }
-                        _ => {
-                            if let Token::Character(inner_paren) = inner_t {
-                                if inner_paren == '(' {
-                                    depth += 1;
-                                } else if inner_paren == ')' {
-                                    depth -= 1;
-                                }
-                            }
-                            group_content.push_str(&format!("{inner_t}"))
-                        },
-                    }
+            Token::StringLiteral(s) => result.push_str(s),
+            Token::Character('(') => {
+                result.push_str(&format!("(group {} ) ", recursive_parse(lexer, depth + 1)));
+            }
+            Token::Character(')') => {
+                if depth == 0 {
+                    eprintln!("Error: Unmatched parentheses.");
                 }
-                if depth != 0 {
-                    println!("Error: Unmatched parentheses.");
-                } else {
-                    println!("(group {group_content})");
-                }
+                return result + ")";
             }
             _ => todo!(),
         }
-    };
+    }
+    
+    if depth > 0 {
+        eprintln!("Error: Unmatched parentheses.");
+    }
+    result
+}
+
+pub fn parse(file_contents: &str) -> ExitCode {
+    let mut lexer = Lexer::new(&file_contents);
+    let result = recursive_parse(&mut lexer, 0);
+    println!("{result}");
     ExitCode::SUCCESS
 }
