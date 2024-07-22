@@ -13,11 +13,11 @@ pub fn parse(file_contents: &str) -> ExitCode {
             },
             Token::Number((_, n)) => {
                 // We check the next token without advancing the iterator
+                eprintln!("eNumber: {n}");
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => break,
                 };
-                eprintln!("eNumber: {n}");
                 match symbol {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
                         // It's a binary operation
