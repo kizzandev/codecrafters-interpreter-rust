@@ -11,13 +11,13 @@ pub fn parse(file_contents: &str) -> ExitCode {
             Token::ReservedKeyword(k) => {
                 println!("{k}")
             },
-            Token::Number((a, n)) => {
-                eprintln!("Checking {a} {n:?}");
+            Token::Number((n_raw, n)) => {
+                eprintln!("Checking {n_raw} {n}");
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
-                        println!("{n}");
+                        println!("{n_raw}");
                         continue;
                     },
                 };
