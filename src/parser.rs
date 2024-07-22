@@ -54,7 +54,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             if depth == 0 { break; }
                             group_content.push(')');
                         }
-                        _ => group_content.push_str(&format!("{t:?}")),
+                        _ => group_content.push_str(&format!("{t}")),
                     }
                 }
                 if depth != 0 {
