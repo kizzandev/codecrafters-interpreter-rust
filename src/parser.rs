@@ -30,7 +30,9 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             _ => todo!(),
                         }
                     }
-                    _ => todo!(),
+                    _ => {
+                        println!("{n}");
+                    },
                 }
             },
             _ => todo!(),
