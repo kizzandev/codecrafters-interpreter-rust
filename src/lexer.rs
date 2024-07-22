@@ -161,6 +161,7 @@ impl<'input> Iterator for Lexer<'input> {
                 } else {
                     n_raw
                 };
+                eprintln!("{n_raw}");
                 return Some((Token::Number((n_raw, n)), self.line));
             }
         }
