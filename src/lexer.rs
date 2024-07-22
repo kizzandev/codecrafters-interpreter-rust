@@ -52,7 +52,7 @@ pub enum Token<'input> {
     CharacterDouble(char, char),
 }
 
-// My current favourite looper thingy (a.k.a. generator)
+// My current favourite looper thingy
 impl<'input> Iterator for Lexer<'input> {
     type Item = (Token<'input>, usize);
 
@@ -155,6 +155,8 @@ impl<'input> Iterator for Lexer<'input> {
                         continue;
                     }
                 };
+
+                if !has_dot { n_raw.push_str(".0"); }
                 return Some((Token::Number((n_raw, n)), self.line));
             }
         }
