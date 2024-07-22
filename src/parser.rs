@@ -2,7 +2,7 @@ use std::process::ExitCode;
 
 use crate::lexer::{Lexer, Token};
 
-fn recursive_parse(lexer: &mut Lexer, depth: usize) -> String {
+fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
 
     while let Some((t, _line)) = lexer.next() {
@@ -39,13 +39,14 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> String {
             },
             Token::StringLiteral(s) => result.push_str(s),
             Token::Character('(') => {
-                result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)));
+                result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
             }
             Token::Character(')') => {
                 if depth == 0 {
                     eprintln!("Error: Unmatched parentheses.");
+                    return ExitCode::from(65);
                 }
-                return result + ")";
+                return Ok(result + ")");
             }
             _ => todo!(),
         }
@@ -53,13 +54,18 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> String {
     
     if depth > 0 {
         eprintln!("Error: Unmatched parentheses.");
+        return ExitCode::from(65);
     }
-    result
+    Ok(result)
 }
 
 pub fn parse(file_contents: &str) -> ExitCode {
     let mut lexer = Lexer::new(&file_contents);
-    let result = recursive_parse(&mut lexer, 0);
-    println!("{result}");
-    ExitCode::SUCCESS
+    match recursive_parse(&mut lexer, 0) {
+        Ok(s) => {
+            println!("{s}");
+            ExitCode::SUCCESS
+        },
+        Err(code) => code,
+    }
 }
