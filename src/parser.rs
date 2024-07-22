@@ -16,7 +16,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 eprintln!("eNumber: {n}");
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
-                    None => break,
+                    None => None,
                 };
                 match symbol {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
@@ -31,7 +31,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             _ => todo!(),
                         }
                     }
-                    _ => {
+                    None => {
                         println!("{n}")
                     },
                 }
