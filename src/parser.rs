@@ -16,7 +16,12 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
-                        println!("{n_raw}");
+                        // If n_raw does not have a dot, add it
+                        if !n_raw.contains('.') {
+                            println!("{n_raw}.0");
+                        } else {
+                            println!("{n_raw}");
+                        }
                         continue;
                     },
                 };
