@@ -43,8 +43,8 @@ pub fn parse(file_contents: &str) -> ExitCode {
                 let mut group_content = String::new();
                 let mut depth = 1;
 
-                while let Some((t, _)) = lexer.next() {
-                    match t {
+                while let Some((inner_t, _)) = lexer.next() {
+                    match inner_t {
                         Token::Character('(') => {
                             depth += 1;
                             group_content.push('(');
@@ -54,7 +54,16 @@ pub fn parse(file_contents: &str) -> ExitCode {
                             if depth == 0 { break; }
                             group_content.push(')');
                         }
-                        _ => group_content.push_str(&format!("{t}")),
+                        _ => {
+                            if let Token::Character(inner_paren) = inner_t {
+                                if inner_paren == '(' {
+                                    depth += 1;
+                                } else if inner_paren == ')' {
+                                    depth -= 1;
+                                }
+                            }
+                            group_content.push_str(&format!("{inner_t}"))
+                        },
                     }
                 }
                 if depth != 0 {
