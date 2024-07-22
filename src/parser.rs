@@ -74,6 +74,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Character(c) if matches!(c, '*' | '/') => {
                 has_content = true;
+                is_single_depth = true;
                 let op = match t {
                     Token::Character('*') => "*",
                     Token::Character('/') => "/",
