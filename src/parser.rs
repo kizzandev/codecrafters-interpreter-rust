@@ -39,7 +39,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> String {
             },
             Token::StringLiteral(s) => result.push_str(s),
             Token::Character('(') => {
-                result.push_str(&format!("(group {} ", recursive_parse(lexer, depth + 1)));
+                result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)));
             }
             Token::Character(')') => {
                 if depth == 0 {
