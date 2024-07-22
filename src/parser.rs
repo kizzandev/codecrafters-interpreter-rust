@@ -48,14 +48,15 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             },
             Token::Character('(') => {
                 result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
+                has_content = true;
             }
             Token::Character(')') => {
                 if depth == 0 {
                     eprintln!("Error: Unmatched parentheses.");
-                    return Err(ExitCode::FAILURE);
+                    return Err(ExitCode::from(65));
                 }
                 if !has_content {
-                    return Err(ExitCode::FAILURE);
+                    return Err(ExitCode::from(65));
                 }
                 return Ok(result + ")");
             }
@@ -65,7 +66,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     
     if depth > 0 {
         eprintln!("Error: Unmatched parentheses.");
-        return Err(ExitCode::FAILURE);
+        return Err(ExitCode::from(65));
     }
     Ok(result)
 }
@@ -77,6 +78,6 @@ pub fn parse(file_contents: &str) -> ExitCode {
             println!("{s}");
             ExitCode::SUCCESS
         },
-        _ => ExitCode::FAILURE,
+        _ => ExitCode::from(65),
     }
 }
