@@ -4,10 +4,14 @@ use crate::lexer::{Lexer, Token};
 
 fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
+    let mut has_content = false;
 
     while let Some((t, _line)) = lexer.next() {
         match t {
-            Token::ReservedKeyword(k) => result.push_str(k),
+            Token::ReservedKeyword(k) => {
+                has_content = true;
+                result.push_str(k)
+            },
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
@@ -18,6 +22,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         } else {
                             result.push_str(n_raw);
                         }
+                        has_content = true;
                         continue;
                     },
                 };
@@ -37,14 +42,20 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     _ => todo!(),
                 }
             },
-            Token::StringLiteral(s) => result.push_str(s),
+            Token::StringLiteral(s) => {
+                has_content = true;
+                result.push_str(s)
+            },
             Token::Character('(') => {
                 result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
             }
             Token::Character(')') => {
                 if depth == 0 {
                     eprintln!("Error: Unmatched parentheses.");
-                    return Err(ExitCode::from(65));
+                    return Err(ExitCode::FAILURE);
+                }
+                if !has_content {
+                    return Err(ExitCode::FAILURE);
                 }
                 return Ok(result + ")");
             }
@@ -54,7 +65,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     
     if depth > 0 {
         eprintln!("Error: Unmatched parentheses.");
-        return Err(ExitCode::from(65));
+        return Err(ExitCode::FAILURE);
     }
     Ok(result)
 }
@@ -66,6 +77,6 @@ pub fn parse(file_contents: &str) -> ExitCode {
             println!("{s}");
             ExitCode::SUCCESS
         },
-        _ => ExitCode::from(65),
+        _ => ExitCode::FAILURE,
     }
 }
