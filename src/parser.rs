@@ -5,6 +5,7 @@ use crate::lexer::{Lexer, Token};
 fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
     let mut has_content = false;
+    let mut is_single_depth = false;
 
     while let Some((t, _line)) = lexer.next() {
         match t {
@@ -63,17 +64,19 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Character('!') => {
                 has_content = true;
+                is_single_depth = true;
                 result.push_str(&format!("(! {})", recursive_parse(lexer, depth)?));
             }
             Token::Character('-') => {
-                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?));
                 has_content = true;
+                is_single_depth = true;
+                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?));
             }
             _ => todo!(),
         }
     }
     
-    if depth > 0 {
+    if depth > 0 && !is_single_depth {
         eprintln!("Error: Unmatched parentheses.");
         eprintln!("Depth: {depth}\n{result}");
         return Err(ExitCode::from(65));
