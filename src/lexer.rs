@@ -59,8 +59,14 @@ impl Token<'_> {
             Token::Identifier(k) => k,
             Token::Number((k, _)) => k,
             Token::StringLiteral(k) => k,
-            Token::Character(k) => &k.to_string(),
-            Token::CharacterDouble(a, b) => &(a.to_string() + &b.to_string()),
+            Token::Character(k) => {
+                let s = k.to_string();
+                &s
+            },
+            Token::CharacterDouble(a, b) => {
+                let s = format!("{a}{b}");
+                &s
+            },
             Token::UnterminatedStringLiteral => "Unterminated string literal",
         }
     }
