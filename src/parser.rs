@@ -17,6 +17,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                     Some((t, _)) => t,
                     None => break,
                 };
+                eprintln!("eNumber: {n}");
                 match symbol {
                     Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
                         // It's a binary operation
@@ -31,7 +32,7 @@ pub fn parse(file_contents: &str) -> ExitCode {
                         }
                     }
                     _ => {
-                        println!("{n}");
+                        println!("{n}")
                     },
                 }
             },
