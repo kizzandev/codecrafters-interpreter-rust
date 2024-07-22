@@ -81,7 +81,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 };
                 let left = result;
                 let right = recursive_parse(lexer, depth)?;
-                result = format!("{op} {left} {right}");
+                result = format!("({op} {left} {right})");
             }
             _ => todo!(),
         }
