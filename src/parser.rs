@@ -75,12 +75,16 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             Token::Character('*') => {
                 has_content = true;
                 is_single_depth = true;
-                result.push_str(&format!("(* {})", recursive_parse(lexer, depth)?))
+                result.push_str(&format!("(* {} {})",
+                                recursive_parse(lexer, depth)?,
+                                recursive_parse(lexer, depth)?))
             }
             Token::Character('/') => {
                 has_content = true;
                 is_single_depth = true;
-                result.push_str(&format!("(/ {})", recursive_parse(lexer, depth)?))
+                result.push_str(&format!("(/ {} {})",
+                                recursive_parse(lexer, depth)?,
+                                recursive_parse(lexer, depth)?))
             }
             _ => todo!(),
         }
