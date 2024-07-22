@@ -80,9 +80,8 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     _ => unreachable!(),
                 };
                 let left = result;
-                eprintln!("Left: {left}");
                 let right = recursive_parse(lexer, depth)?;
-                result = format!("({op} ({left}) {right})");
+                result = format!("({op} {left} {right})");
             }
             _ => todo!(),
         }
