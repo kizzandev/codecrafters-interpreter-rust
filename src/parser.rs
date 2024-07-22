@@ -56,6 +56,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     return Err(ExitCode::from(65));
                 }
                 if !has_content {
+                    eprintln!("Error: Empty parentheses.");
                     return Err(ExitCode::from(65));
                 }
                 return Ok(result + ")");
@@ -73,7 +74,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     }
     
     if depth > 0 {
-        eprintln!("Error: Unmatched parentheses.");
+        eprintln!("Error: Unmatched parentheses..");
         return Err(ExitCode::from(65));
     }
     Ok(result)
