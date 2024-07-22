@@ -157,7 +157,7 @@ impl<'input> Iterator for Lexer<'input> {
                 };
 
                 let n_raw = if !has_dot {
-                    format!("{n_raw}.0").as_str()
+                    Box::leak(format!("{n_raw}.0").into_boxed_str())
                 } else {
                     n_raw
                 };
