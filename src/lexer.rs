@@ -59,7 +59,10 @@ impl Token<'_> {
             Token::Identifier(k) => k,
             Token::Number((k, _)) => k,
             Token::StringLiteral(k) => k,
-            Token::Character(k) => k.to_string().as_str(),
+            Token::Character(k) => {
+                let s = k.to_string();
+                s.as_str()
+            },
             Token::CharacterDouble(a, b) => {
                 let s = format!("{a}{b}");
                 s.as_str()
