@@ -130,7 +130,7 @@ impl<'input> Iterator for Lexer<'input> {
             self.idx -= 1;
             loop {
                 self.idx += 1;
-                let (n, mut n_raw) = if self.idx >= self.char_indices.len() {
+                let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
                     let raw = &self.contents[c_idx..]; // get rest of the string
                     // Possible edge case where the last character is NOT
