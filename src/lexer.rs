@@ -159,7 +159,7 @@ impl<'input> Iterator for Lexer<'input> {
                 let n_raw = if !has_dot {
                     format!("{n_raw}.0")
                 } else {
-                    n_raw
+                    n_raw.to_string()
                 };
                 return Some((Token::Number((n_raw, n)), self.line));
             }
