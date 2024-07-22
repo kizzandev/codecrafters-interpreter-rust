@@ -60,7 +60,7 @@ impl Token<'_> {
             Token::Number((k, _)) => k,
             Token::StringLiteral(k) => k,
             Token::Character(k) => &k.to_string(),
-            Token::CharacterDouble(a, b) => a.to_string() + &b.to_string(),
+            Token::CharacterDouble(a, b) => &(a.to_string() + &b.to_string()),
             Token::UnterminatedStringLiteral => "Unterminated string literal",
         }
     }
