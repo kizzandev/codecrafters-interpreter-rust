@@ -11,7 +11,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             Token::ReservedKeyword(k) => {
                 has_content = true;
                 result.push_str(k)
-            },
+            }
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 let symbol = match lexer.peek() {
@@ -41,11 +41,11 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     }
                     _ => todo!(),
                 }
-            },
+            }
             Token::StringLiteral(s) => {
                 has_content = true;
                 result.push_str(s)
-            },
+            }
             Token::Character('(') => {
                 result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
                 has_content = true;
@@ -59,6 +59,10 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     return Err(ExitCode::from(65));
                 }
                 return Ok(result + ")");
+            }
+            Token::Character('!') => {
+                result.push_str(&format!("(! {})", recursive_parse(lexer, depth)?));
+                has_content = true;
             }
             _ => todo!(),
         }
