@@ -47,16 +47,14 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 result.push_str(s)
             }
             Token::Character('(') => {
+                has_content = true
                 result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
-                has_content = true;
             }
             Token::Character(')') => {
-                /*if depth == 0 {
-                    eprintln!("')' Depth: {depth}");
+                if depth == 0 {
                     eprintln!("Error: Unmatched parentheses.");
-                    eprintln!("Contents: {result}");
                     return Err(ExitCode::from(65));
-                }*/
+                }
                 if !has_content {
                     eprintln!("Error: Empty parentheses.");
                     return Err(ExitCode::from(65));
@@ -64,11 +62,11 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 return Ok(result + ")");
             }
             Token::Character('!') => {
-                result.push_str(&format!("(! {})", recursive_parse(lexer, 0)?));
                 has_content = true;
+                result.push_str(&format!("(! {})", recursive_parse(lexer, depth + 1)?));
             }
             Token::Character('-') => {
-                result.push_str(&format!("(- {})", recursive_parse(lexer, 0)?));
+                result.push_str(&format!("(- {})", recursive_parse(lexer, depth + 1)?));
                 has_content = true;
             }
             _ => todo!(),
@@ -76,7 +74,6 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     }
     
     if depth > 0 {
-        eprintln!("Contents: {result}");
         eprintln!("Error: Unmatched parentheses.");
         return Err(ExitCode::from(65));
     }
