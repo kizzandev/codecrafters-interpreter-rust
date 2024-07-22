@@ -18,12 +18,12 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
+                        has_content = true;
                         if !n_raw.contains('.') {
                             result.push_str(&format!("{n_raw}.0"));
                         } else {
                             result.push_str(n_raw);
                         }
-                        has_content = true;
                         continue;
                     },
                 };
@@ -49,7 +49,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Character('(') => {
                 has_content = true;
-                result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?));
+                result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?))
             }
             Token::Character(')') => {
                 if depth == 0 {
@@ -65,17 +65,17 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             Token::Character('!') => {
                 has_content = true;
                 is_single_depth = true;
-                result.push_str(&format!("(! {})", recursive_parse(lexer, depth)?));
+                result.push_str(&format!("(! {})", recursive_parse(lexer, depth)?))
             }
             Token::Character('-') => {
                 has_content = true;
                 is_single_depth = true;
-                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?));
+                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?))
             }
             _ => todo!(),
         }
     }
-    
+
     if depth > 0 && !is_single_depth {
         eprintln!("Error: Unmatched parentheses.");
         eprintln!("Depth: {depth}\n{result}");
