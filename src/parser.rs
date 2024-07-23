@@ -61,7 +61,8 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 let right = lexer.next().unwrap().0;
                 match right {
                     Token::Number((n_raw, _)) => {
-                        result = format!("({c} {result} {})", parse_number(&n_raw));
+                        let right = parse_number(&n_raw);
+                        result = format!("({c} {result} {right})");
                     },
                     _ => continue,
                 }
@@ -72,7 +73,8 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         let next_right = lexer.next().unwrap().0;
                         match next_right {
                             Token::Number((n_raw, _)) => {
-                                result = format!("({next_op} {result} {})", parse_number(&n_raw));
+                                let right = parse_number(&n_raw);
+                                result = format!("({next_op} {result} {right})");
                             },
                             _ => continue,
                         }
