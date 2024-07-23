@@ -19,7 +19,7 @@ fn parse_next(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
             Token::ReservedKeyword(k) => result.push_str(k),
             Token::Number((n_raw, _n)) => result.push_str(&parse_number(n_raw)),
             Token::StringLiteral(s) => result.push_str(s),
-            Token::Character('(') => result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?)),
+            Token::Character('(') => result.push_str(&format!("(group {}", parse_next(lexer, depth + 1)?)),
             Token::Character(')') => {
                 if depth == 0 { return Err(ExitCode::from(65)); }
                 result.push_str(")");
