@@ -80,9 +80,10 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     _ => unreachable!(),
                 };
                 let left = result.clone();
+                eprintln!("Left: {left}");
                 let right = recursive_parse(lexer, depth)?;
-                result = format!("({op} {left} {right})");
                 eprintln!("Right: {right}");
+                result = format!("({op} {left} {right})");
 
                 while let Some((Token::Character(next_op), _)) = lexer.peek() {
                     if matches!(next_op, '*' | '/') {
