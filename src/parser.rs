@@ -8,6 +8,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     let mut is_single_depth = false;
 
     while let Some((t, _line)) = lexer.next() {
+        eprintln!("Result: {result}");
         match t {
             Token::ReservedKeyword(k) => {
                 has_content = true;
@@ -79,7 +80,6 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     Token::Character('/') => "/",
                     _ => unreachable!(),
                 };
-                eprintln!("Result: {result}");
                 let left = result;
                 eprintln!("Left: {left}");
                 let right = recursive_parse(lexer, depth)?;
