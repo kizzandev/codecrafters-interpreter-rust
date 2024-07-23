@@ -109,7 +109,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     Token::Number((n_raw, _)) => {
                         result = format!("({c} {result} {})", parse_number(&n_raw));
                     },
-                    _ => todo!(),
+                    _ => result = recursive_parse(lexer, depth)?,
                 }
 
                 while let Some((Token::Character(next_op), _)) = lexer.peek() {
