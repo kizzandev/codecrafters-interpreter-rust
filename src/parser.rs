@@ -91,8 +91,9 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                             '/' => "/",
                             _ => unreachable!(),
                         };
+                        let next_left = result.clone();
                         let next_right = recursive_parse(lexer, depth)?;
-                        result = format!("({next_op_str} {result} {next_right})");
+                        result = format!("({next_op_str} {next_left} {next_right})");
                     } else {
                         break;
                     }
