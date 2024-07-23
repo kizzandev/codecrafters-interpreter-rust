@@ -178,12 +178,12 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
 }
 
 fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
-    let mut result = parse_tem(lexer, depth)?;
+    let mut result = parse_term(lexer, depth)?;
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::Character(c) if matches!(c, '+' | '-') => {
                 let op = lexer.next().unwrap().0;
-                let right = parse_tem(lexer, depth)?;
+                let right = parse_term(lexer, depth)?;
                 result = format!("({op} {result} {right})");
             }
             _ => break,
