@@ -2,6 +2,14 @@ use std::process::ExitCode;
 
 use crate::lexer::{Lexer, Token};
 
+fn parse_number(n_raw: &str) -> String {
+    if n_raw.contains('.') {
+        format!("{n_raw}")
+    } else {
+        format!("{n_raw}.0")
+    }
+}
+
 fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
     let mut has_content = false;
@@ -16,11 +24,12 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 has_content = true;
-                if !n_raw.contains('.') {
-                    result.push_str(&format!("{n_raw}.0"));
-                } else {
-                    result.push_str(n_raw);
-                }
+                result.push_str(&parse_number(n_raw));
+                // if !n_raw.contains('.') {
+                //     result.push_str(&format!("{n_raw}.0"));
+                // } else {
+                //     result.push_str(n_raw);
+                // }
                 /*let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
@@ -98,6 +107,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 let right = lexer.next().unwrap().0;
                 match right {
                     Token::Number((_, n)) => {
+                        let right = parse_number(n);
                         result = format!("({c} {result} {right})");
                     },
                     _ => todo!(),
