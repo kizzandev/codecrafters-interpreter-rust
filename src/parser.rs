@@ -95,14 +95,24 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                     }
                     _ => todo!(),
                 }*/
-                let right = recursive_parse(lexer, depth)?;
-                result = format!("({c} {result} {right})");
+                let right = lexer.next().unwrap().0;
+                match right {
+                    Token::Number((_, n)) => {
+                        result = format!("({c} {result} {right})");
+                    },
+                    _ => todo!(),
+                }
 
                 while let Some((Token::Character(next_op), _)) = lexer.peek() {
                     if matches!(next_op, '*' | '/') {
                         let _ = lexer.next();
                         let next_right = lexer.next().unwrap().0;
-                        result = format!("({next_op} {result} {next_right})");
+                        match next_right {
+                            Token::Number((_, n)) => {
+                                result = format!("({next_op} {result} {next_right})");
+                            },
+                            _ => todo!(),
+                        }
                     } else {
                         break;
                     }
