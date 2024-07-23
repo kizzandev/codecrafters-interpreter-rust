@@ -89,27 +89,12 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Character(c) if matches!(c, '*' | '/') => {
                 has_content = true;
-                /*match symbol {
-                    Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
-                        // It's a binary operation
-                        // Next-ed twice because the peek() clones the iterator
-                        lexer.next();
-                        let n2 = lexer.next().unwrap().0;
-                        match n2 {
-                            Token::Number((_, n2)) => {
-                                result.push_str(&format!("({c} {n:?} {n2:?})"));
-                            },
-                            _ => todo!(),
-                        }
-                    }
-                    _ => todo!(),
-                }*/
                 let right = lexer.next().unwrap().0;
                 match right {
                     Token::Number((n_raw, _)) => {
                         result = format!("({c} {result} {})", parse_number(&n_raw));
                     },
-                    _ => result = recursive_parse(lexer, depth)?,
+                    _ => continue,
                 }
 
                 while let Some((Token::Character(next_op), _)) = lexer.peek() {
