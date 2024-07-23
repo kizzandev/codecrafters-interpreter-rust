@@ -53,16 +53,15 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             Token::Character('-') => {
                 has_content = true;
                 is_single_depth = true;
-                // result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?))
-                let right = lexer.next().unwrap().0;
+                result.push_str(&format!("(- {})", recursive_parse(lexer, depth)?))
+                /*let right = lexer.next().unwrap().0;
                 match right {
                     Token::Number((n_raw, _)) => {
                         let right = parse_number(&n_raw);
                         result.push_str(&format!("(- {right})"));
                     },
                     _ => todo!(),
-                }
-                // result.push_str(&format!("(- {})", ))
+                }*/
             }
             Token::Character(c) if matches!(c, '*' | '/') => {
                 has_content = true;
@@ -98,6 +97,14 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                             },
                             Token::Character('(') => {
                                 result = format!("(group {c} {result} {})", recursive_parse(lexer, depth + 1)?);
+                            },
+                            Token::Character('-') => {
+                                let right = lexer.next().unwrap().0;
+                                let right = match right {
+                                    Token::Number((n_raw, _)) => parse_number(&n_raw),
+                                    _ => todo!(),
+                                };
+                                result.push_str(&format!("(- {right})"));
                             },
                             _ => continue,
                         }
