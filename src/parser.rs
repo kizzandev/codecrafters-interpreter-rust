@@ -15,13 +15,13 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
-                // has_content = true;
-                // if !n_raw.contains('.') {
-                //     result.push_str(&format!("{n_raw}.0"));
-                // } else {
-                //     result.push_str(n_raw);
-                // }
-                let symbol = match lexer.peek() {
+                has_content = true;
+                if !n_raw.contains('.') {
+                    result.push_str(&format!("{n_raw}.0"));
+                } else {
+                    result.push_str(n_raw);
+                }
+                /*let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
                         has_content = true;
@@ -47,7 +47,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         }
                     }
                     _ => todo!(),
-                }
+                }*/
             }
             Token::StringLiteral(s) => {
                 has_content = true;
@@ -80,6 +80,21 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Character(c) if matches!(c, '*' | '/') => {
                 has_content = true;
+                /*match symbol {
+                    Token::Character(c) if matches!(c, '+' | '-' | '*' | '/') => {
+                        // It's a binary operation
+                        // Next-ed twice because the peek() clones the iterator
+                        lexer.next();
+                        let n2 = lexer.next().unwrap().0;
+                        match n2 {
+                            Token::Number((_, n2)) => {
+                                result.push_str(&format!("({c} {n:?} {n2:?})"));
+                            },
+                            _ => todo!(),
+                        }
+                    }
+                    _ => todo!(),
+                }*/
                 let right = recursive_parse(lexer, depth)?;
                 result = format!("({c} {result} {right})");
 
