@@ -8,7 +8,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
     let mut is_single_depth = false;
 
     while let Some((t, _line)) = lexer.next() {
-        eprintln!("IN: {t:?}");
+        eprintln!("WITH: {t:?}");
         match t {
             Token::ReservedKeyword(k) => {
                 has_content = true;
@@ -16,7 +16,13 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
-                let symbol = match lexer.peek() {
+                has_content = true;
+                if !n_raw.contains('.') {
+                    result.push_str(&format!("{n_raw}.0"));
+                } else {
+                    result.push_str(n_raw);
+                }
+                /*let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
                         has_content = true;
@@ -25,7 +31,6 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         } else {
                             result.push_str(n_raw);
                         }
-                        eprintln!("IN NUMBER: {result}");
                         continue;
                     },
                 };
@@ -43,7 +48,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         }
                     }
                     _ => todo!(),
-                }
+                }*/
             }
             Token::StringLiteral(s) => {
                 has_content = true;
