@@ -120,11 +120,24 @@ fn parse_number(n_raw: &str) -> String {
 fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     if let Some((t, _)) = lexer.peek() {
         match t {
-            Token::ReservedKeyword(k) => Ok(k.to_string()),
-            Token::Identifier(i) => Ok(i.to_string()),
-            Token::Number((n_raw, _)) => Ok(parse_number(&n_raw)),
-            Token::StringLiteral(s) => Ok(s.to_string()),
+            Token::ReservedKeyword(k) => {
+                lexer.next();
+                Ok(k.to_string())
+            },
+            Token::Identifier(i) => {
+                lexer.next();
+                Ok(i.to_string())
+            },
+            Token::Number((n_raw, _)) => {
+                lexer.next();
+                Ok(parse_number(&n_raw))
+            },
+            Token::StringLiteral(s) => {
+                lexer.next();
+                Ok(s.to_string())
+            },
             Token::Character('(') => {
+                lexer.next();
                 let expr = parse_expression(lexer, depth + 1)?;
                 if let Some((Token::Character(')'), _)) = lexer.next() {
                     Ok(format!("(group {expr})"))
