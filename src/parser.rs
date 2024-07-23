@@ -3,8 +3,8 @@ use std::process::ExitCode;
 use crate::lexer::{Lexer, Token};
 
 fn parse_number(n_raw: &str) -> String {
-    let n_raw = n_raw.trim_end_matches('0');
     if n_raw.contains('.') {
+        let n_raw = n_raw.trim_end_matches('0');
         format!("{n_raw}")
     } else {
         format!("{n_raw}.0")
