@@ -15,12 +15,12 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
             }
             Token::Number((n_raw, _n)) => {
                 // We check the next token without advancing the iterator
-                has_content = true;
-                if !n_raw.contains('.') {
-                    result.push_str(&format!("{n_raw}.0"));
-                } else {
-                    result.push_str(n_raw);
-                }
+                // has_content = true;
+                // if !n_raw.contains('.') {
+                //     result.push_str(&format!("{n_raw}.0"));
+                // } else {
+                //     result.push_str(n_raw);
+                // }
                 let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
