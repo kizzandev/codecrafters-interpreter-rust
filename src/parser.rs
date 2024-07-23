@@ -10,7 +10,35 @@ fn parse_number(n_raw: &str) -> String {
     }
 }
 
-fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+// Parse only the next token
+fn parse_next(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    let mut result = String::new();
+    
+    if let Some((t, _line)) = lexer.next() {
+        match t {
+            Token::ReservedKeyword(k) => result.push_str(k),
+            Token::Number((n_raw, _n)) => result.push_str(&parse_number(n_raw)),
+            Token::StringLiteral(s) => result.push_str(s),
+            Token::Character('(') => result.push_str(&format!("(group {}", recursive_parse(lexer, depth + 1)?)),
+            Token::Character(')') => {
+                if depth == 0 { return Err(ExitCode::from(65)); }
+                result.push_str(")");
+            },
+            Token::Character('!') => result.push_str(&format!("(! {})", parse_next(lexer, depth)?)),
+            Token::Character('-') => result.push_str(&format!("(- {})", parse_next(lexer, depth)?)),
+            Token::Character(c) if matches!(c, '*' | '/') => {
+                result.push_str(&format!("({c} {})", parse_next(lexer, depth)?));
+            },
+            _ => return Err(ExitCode::from(65)),
+        }
+    } else {
+        return Err(ExitCode::from(65));
+    }
+    Ok(result)
+}
+
+// To be seen if used
+fn _recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
     let mut has_content = false;
     let mut is_single_depth = false;
@@ -100,11 +128,22 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
 
 pub fn parse(file_contents: &str) -> ExitCode {
     let mut lexer = Lexer::new(&file_contents);
-    match recursive_parse(&mut lexer, 0) {
+
+    // Using parse_next
+    match parse_next(&mut lexer, 0) {
         Ok(s) => {
             println!("{s}");
             ExitCode::SUCCESS
         },
         _ => ExitCode::from(65),
     }
+
+
+    /*match recursive_parse(&mut lexer, 0) {
+        Ok(s) => {
+            println!("{s}");
+            ExitCode::SUCCESS
+        },
+        _ => ExitCode::from(65),
+    }*/
 }
