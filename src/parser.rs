@@ -174,6 +174,7 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
                 let right = parse_unary(lexer, depth)?;
                 result = format!("({op} {result} {right})");
             }
+            _ => break,
         }
     }
     Ok(result)
