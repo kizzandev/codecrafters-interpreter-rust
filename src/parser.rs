@@ -24,6 +24,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         } else {
                             result.push_str(n_raw);
                         }
+                        eprintln!("IN NUMBER: {result}");
                         continue;
                     },
                 };
