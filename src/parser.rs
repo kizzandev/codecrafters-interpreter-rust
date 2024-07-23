@@ -38,7 +38,7 @@ fn parse_next(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
 }
 
 // To be seen if used
-fn _recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+/*fn _recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
     let mut has_content = false;
     let mut is_single_depth = false;
@@ -124,7 +124,7 @@ fn _recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode>
         return Err(ExitCode::from(65));
     }
     Ok(result)
-}
+}*/
 
 pub fn parse(file_contents: &str) -> ExitCode {
     let mut lexer = Lexer::new(&file_contents);
