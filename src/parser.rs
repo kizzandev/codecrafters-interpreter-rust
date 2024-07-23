@@ -86,13 +86,33 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     Ok(result)
 }
 
-fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = parse_term(lexer, depth)?;
+    while let Some((t, _)) = lexer.peek() {
+        match t {
+            Token::Character(c) if matches!(c, '<' | '>') => {
+                let op = lexer.next().unwrap().0;
+                let right = parse_term(lexer, depth)?;
+                result = format!("({op} {result} {right})");
+            }
+            Token::CharacterDouble(c1, c2) if matches!((c1, c2), ('!', '='), ('=', '=')) => {
+                let op = lexer.next().unwrap().0;
+                let right = parse_term(lexer, depth)?;
+                result = format!("({op} {result} {right})");
+            }
+            _ => break,
+        }
+    }
+    Ok(result)
+}
+
+fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    let mut result = parse_comparisson(lexer, depth)?;
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::Character(c) if matches!(c, '+' | '-') => {
                 let op = lexer.next().unwrap().0;
-                let right = parse_term(lexer, depth)?;
+                let right = parse_comparisson(lexer, depth)?;
                 result = format!("({op} {result} {right})");
             }
             _ => break,
