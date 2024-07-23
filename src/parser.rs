@@ -60,7 +60,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         let right = parse_number(&n_raw);
                         result.push_str(&format!("(- {right})"));
                     },
-                    _ => continue,
+                    _ => todo!(),
                 }
                 // result.push_str(&format!("(- {})", ))
             }
