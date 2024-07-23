@@ -140,6 +140,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
         eprintln!("Error: Unexpected end of input.");
         Err(ExitCode::from(65))
     }
+}
 
 fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     if let Some((t, _)) = lexer.peek() {
