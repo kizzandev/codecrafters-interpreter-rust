@@ -21,7 +21,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 } else {
                     result.push_str(n_raw);
                 }
-                /*let symbol = match lexer.peek() {
+                let symbol = match lexer.peek() {
                     Some((t, _)) => t,
                     None => {
                         has_content = true;
@@ -41,13 +41,13 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                         let n2 = lexer.next().unwrap().0;
                         match n2 {
                             Token::Number((_, n2)) => {
-                                result.push_str(&format!("{c} {n:?} {n2:?}"));
+                                result.push_str(&format!("({c} {n:?} {n2:?})"));
                             },
                             _ => todo!(),
                         }
                     }
                     _ => todo!(),
-                }*/
+                }
             }
             Token::StringLiteral(s) => {
                 has_content = true;
