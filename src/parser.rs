@@ -13,7 +13,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 has_content = true;
                 result.push_str(k)
             }
-            Token::Number((n_raw, _n)) => {
+            Token::Number((n_raw, n)) => {
                 // We check the next token without advancing the iterator
                 // has_content = true;
                 // if !n_raw.contains('.') {
