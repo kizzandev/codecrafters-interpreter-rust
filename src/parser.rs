@@ -21,7 +21,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 has_content = true;
                 result.push_str(k)
             }
-            Token::Number((n_raw, n)) => {
+            Token::Number((n_raw, _n)) => {
                 // We check the next token without advancing the iterator
                 has_content = true;
                 result.push_str(&parse_number(n_raw));
@@ -106,8 +106,8 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                 }*/
                 let right = lexer.next().unwrap().0;
                 match right {
-                    Token::Number((_, n)) => {
-                        let right = parse_number(n);
+                    Token::Number((n_raw, _)) => {
+                        let right = parse_number(&n_raw);
                         result = format!("({c} {result} {right})");
                     },
                     _ => todo!(),
