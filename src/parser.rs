@@ -95,7 +95,7 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode
                 let right = parse_term(lexer, depth)?;
                 result = format!("({op} {result} {right})");
             }
-            Token::CharacterDouble(c1, c2) if matches!((c1, c2), ('!', '='), ('=', '=')) => {
+            Token::CharacterDouble(c1, c2) if matches!(c1, '=' | '!') && c2 == '=' => {
                 let op = lexer.next().unwrap().0;
                 let right = parse_term(lexer, depth)?;
                 result = format!("({op} {result} {right})");
