@@ -88,7 +88,7 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
                                 result = format!("({next_op} {result} {right})");
                             },
                             Token::Character('(') => {
-                                result = format!("({next_op} {result} (group {}))", recursive_parse(lexer, depth + 1)?);
+                                result = format!("({next_op} {result} (group {})", recursive_parse(lexer, depth + 1)?);
                             },
                             Token::Character('-') => {
                                 let right = lexer.next().unwrap().0;
