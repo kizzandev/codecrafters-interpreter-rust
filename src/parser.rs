@@ -10,7 +10,7 @@ fn parse_number(n_raw: &str) -> String {
     }
 }
 
-fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+/*fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     let mut result = String::new();
     let mut has_content = false;
     let mut is_single_depth = false;
@@ -115,6 +115,84 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> 
         return Err(ExitCode::from(65));
     }
     Ok(result)
+}*/
+
+fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    if let Some((t, _)) = lexer.peek() {
+        match t {
+            Token::Number((n_raw, _)) => Ok(parse_number(&n_raw)),
+            Token::StringLiteral(s) => Ok(s.to_string()),
+            Token::Character('(') => {
+                let expr = parse_expression(lexer, depth + 1)?;
+                if let Some((Token::Character(')'), _)) = lexer.next() {
+                    Ok(format!("(group {expr})"))
+                } else {
+                    eprintln!("Error: Unmatched parentheses.");
+                    Err(ExitCode::from(65))
+                }
+            }
+            _ => {
+                eprintln!("Error: Unexpected token.");
+                Err(ExitCode::from(65))
+            },
+        }
+    } else {
+        eprintln!("Error: Unexpected end of input.");
+        Err(ExitCode::from(65))
+    }
+
+fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    if let Some((t, _)) = lexer.peek() {
+        match t {
+            Token::Character('!') => {
+                lexer.next();
+                let operand = parse_unary(lexer, depth)?;
+                Ok(format!("(! {operand})"))
+            }
+            Token::Character('-') => {
+                lexer.next();
+                let operand = parse_unary(lexer, depth)?;
+                Ok(format!("(- {operand})"))
+            }
+            _ => parse_primary(lexer, depth),
+        }
+    } else {
+        eprintln!("Error: Unexpected end of input.");
+        Err(ExitCode::from(65))
+    }
+}
+
+fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    let mut result = parse_unary(lexer, depth)?;
+    while let Some((t, _)) = lexer.peek() {
+        match t {
+            Token::Character(c) if matches!(c, '*' | '/') => {
+                let op = lexer.next().unwrap().0;
+                let right = parse_unary(lexer, depth)?;
+                result = format!("({op} {result} {right})");
+            }
+        }
+    }
+    Ok(result)
+}
+
+fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    let mut result = parse_tem(lexer, depth)?;
+    while let Some((t, _)) = lexer.peek() {
+        match t {
+            Token::Character(c) if matches!(c, '+' | '-') => {
+                let op = lexer.next().unwrap().0;
+                let right = parse_tem(lexer, depth)?;
+                result = format!("({op} {result} {right})");
+            }
+            _ => break,
+        }
+    }
+    Ok(result)
+}
+
+fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+    parse_expression(lexer, depth)
 }
 
 pub fn parse(file_contents: &str) -> ExitCode {
