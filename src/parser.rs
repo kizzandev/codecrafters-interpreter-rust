@@ -18,14 +18,6 @@ fn parse_number(n_raw: &str) -> String {
 fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     if let Some((t, _)) = lexer.peek() {
         match t {
-            Token::ReservedKeyword(k) => {
-                lexer.next();
-                Ok(k.to_string())
-            },
-            Token::Identifier(i) => {
-                lexer.next();
-                Ok(i.to_string())
-            },
             Token::Number((n_raw, _)) => {
                 lexer.next();
                 Ok(parse_number(&n_raw))
