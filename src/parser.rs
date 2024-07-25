@@ -152,7 +152,10 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
         match t {
             Token::CharacterDouble(c1, c2) if matches!(c1, '=' | '!') && c2 == '=' => {
                 let op = lexer.next().unwrap().0;
-                let right = parse_term(lexer, depth)?;
+                let right = match parse_term(lexer, depth) {
+                    Ok(s) => s,
+                    Err(_) => return Err(ExitCode::from(65)),
+                };
                 result = format!("({op} {result} {right})");
             }
             _ => break,
