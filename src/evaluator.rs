@@ -76,7 +76,12 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::Identifier(i) => Res::StringLiteral(i.to_string()),
         Expr::Character(c) => Res::StringLiteral(c.to_string()),
         Expr::CharacterDouble(c1, c2) => Res::StringLiteral(format!("{c1}{c2}")),
-        Expr::ReservedKeyword(k) => Res::StringLiteral(k.to_string()),
+        Expr::ReservedKeyword(k) => match k.to_string().as_str() {
+            "true" => Res::Bool("true".to_string()),
+            "false" => Res::Bool("false".to_string()),
+            "nil" => Res::Bool("nil".to_string()),
+            _ => Res::StringLiteral(k.to_string()),
+        },
         Expr::Unary { op, right } => {
             let right = evaluate(right);
             match op {
