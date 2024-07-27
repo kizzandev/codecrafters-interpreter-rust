@@ -39,7 +39,7 @@ pub fn evaluate(expr: &Expr) -> String {
                         .to_string()
                         .as_str())
                     {
-                        Expr::ReservedKeyword("nil".to_string()).to_string()
+                        Expr::ReservedKeyword("true".to_string()).to_string()
                     } else {
                         panic!("Invalid unary operator: {op}")
                     }
