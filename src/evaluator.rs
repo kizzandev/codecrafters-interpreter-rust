@@ -1,6 +1,6 @@
 use crate::ast::Expr;
 
-enum Res {
+pub enum Res {
     Number(f64),
     StringLiteral(String),
 }
@@ -69,7 +69,7 @@ pub fn evaluate(expr: &Expr) -> Res {
                 }
                 _ => panic!("Invalid unary operator: {op}"),
             };
-            op
+            Res::StringLiteral(op)
         }
         Expr::Binary { left, op, right } => {
             let left = evaluate(left);
