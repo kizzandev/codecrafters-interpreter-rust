@@ -3,6 +3,7 @@ use crate::ast::Expr;
 pub enum Res {
     Number(f64),
     StringLiteral(String),
+    RuntimeError(String),
 }
 
 impl Res {
@@ -10,6 +11,7 @@ impl Res {
         match self {
             Res::Number(n) => n.to_string(),
             Res::StringLiteral(s) => s.to_string(),
+            Res::RuntimeError(s) => s.to_string(),
         }
     }
 }
@@ -32,6 +34,17 @@ impl Res {
     fn is_same_type(&self, other: &Res) -> bool {
         (self.is_number() && other.is_number()) || (!self.is_number() && !other.is_number())
     }
+
+    pub fn is_runtime_error(&self) -> bool {
+        match self {
+            Res::RuntimeError(_) => true,
+            _ => false,
+        }
+    }
+}
+
+fn operand_must_be_number() -> Res {
+    Res::RuntimeError("Operand must be a number.".to_string())
 }
 
 pub fn evaluate(expr: &Expr) -> Res {
@@ -49,7 +62,7 @@ pub fn evaluate(expr: &Expr) -> Res {
                     if right.is_number() {
                         Res::Number(-right.get_number())
                     } else {
-                        panic!("Invalid unary operator: {op} {}", right.to_string())
+                        operand_must_be_number()
                     }
                 }
                 '!' => {
