@@ -205,23 +205,17 @@ pub fn evaluate(expr: &Expr) -> Res {
             let right = evaluate(right);
             let op = match op {
                 ('<', '=') => {
-                    if !left.is_same_type(&right) {
-                        return operands_must_be_numbers();
-                    }
                     if left.is_number() && right.is_number() {
                         Res::StringLiteral((left.get_number() <= right.get_number()).to_string())
                     } else {
-                        panic!("Invalid comparison operator: {}{}", op.0, op.1)
+                        return operands_must_be_numbers();
                     }
                 }
                 ('>', '=') => {
-                    if !left.is_same_type(&right) {
-                        return operands_must_be_numbers();
-                    }
                     if left.is_number() && right.is_number() {
                         Res::StringLiteral((left.get_number() >= right.get_number()).to_string())
                     } else {
-                        panic!("Invalid comparison operator: {}{}", op.0, op.1)
+                        return operands_must_be_numbers();
                     }
                 }
                 ('=', '=') => {
