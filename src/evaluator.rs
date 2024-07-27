@@ -21,9 +21,9 @@ pub fn evaluate(expr: &Expr) -> String {
                 '!' => {
                     if right.parse::<f64>().is_ok() {
                         if right.parse::<f64>().unwrap() != 0.0 {
-                            0.0.to_string()
+                            Expr::ReservedKeyword("false".to_string()).to_string()
                         } else {
-                            1.0.to_string()
+                            Expr::ReservedKeyword("true".to_string()).to_string()
                         }
                     } else if right.eq(Expr::ReservedKeyword("true".to_string())
                         .to_string()
