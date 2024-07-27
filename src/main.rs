@@ -1,12 +1,15 @@
 use std::env;
 use std::process::ExitCode;
 
-mod tokenizer;
-mod parser;
+mod ast;
+mod evaluator;
 mod lexer;
+mod parser;
+mod tokenizer;
 
-use crate::tokenizer::tokenize;
+use crate::evaluator::evaluate;
 use crate::parser::parse;
+use crate::tokenizer::tokenize;
 use interpreter_starter_rust::read_file;
 
 fn main() -> ExitCode {
@@ -23,7 +26,20 @@ fn main() -> ExitCode {
 
     return match command.as_str() {
         "tokenize" => tokenize(&file_contents),
-        "parse" => parse(&file_contents),
+        "parse" => {
+            println!("{}", parse(&file_contents).ok().unwrap().to_string());
+            ExitCode::SUCCESS
+        }
+        "evaluate" => {
+            let result = match parse(&file_contents) {
+                Ok(expr) => {
+                    println!("{}", evaluate(&expr));
+                    ExitCode::SUCCESS
+                }
+                _ => ExitCode::from(65),
+            };
+            result
+        }
         _ => {
             eprintln!("Usage: {} <action> <filename>", args[0]);
             ExitCode::from(65)

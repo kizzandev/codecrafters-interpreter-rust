@@ -1,5 +1,6 @@
 use std::process::ExitCode;
 
+use crate::ast::Expr;
 use crate::lexer::{Lexer, Token};
 
 fn parse_number(n_raw: &str) -> String {
@@ -15,19 +16,20 @@ fn parse_number(n_raw: &str) -> String {
     }
 }
 
-fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     if let Some((t, _)) = lexer.next() {
         match t {
-            Token::ReservedKeyword(k) => Ok(k.to_string()),
-            Token::Number((n_raw, _)) => Ok(parse_number(&n_raw)),
-            Token::StringLiteral(s) => Ok(s.to_string()),
+            Token::ReservedKeyword(k) => Ok(Expr::ReservedKeyword(k.to_string())),
+            Token::Number((n_raw, _)) => Ok(Expr::Number(n_raw.parse().unwrap())),
+            Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
             Token::Character('(') => {
                 let expr = match parse_expression(lexer, depth + 1) {
                     Ok(expr) => expr,
                     _ => return Err(ExitCode::from(65)),
                 };
                 if let Some((Token::Character(')'), _)) = lexer.next() {
-                    Ok(format!("(group {expr})"))
+                    // Ok(format!("(group {expr})"))
+                    Ok(Expr::Grouping(Box::new(expr)))
                 } else {
                     eprintln!("Error: Unmatched parentheses.");
                     Err(ExitCode::from(65))
@@ -36,7 +38,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
             _ => {
                 eprintln!("Error: Unexpected token.");
                 Err(ExitCode::from(65))
-            },
+            }
         }
     } else {
         eprintln!("Error: Unexpected end of input.");
@@ -44,10 +46,21 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     }
 }
 
-fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     if let Some((t, _)) = lexer.peek() {
         match t {
-            Token::Character('!') => {
+            Token::Character('!') | Token::Character('-') => {
+                let op = lexer.next().unwrap().0;
+                let operand = match parse_unary(lexer, depth) {
+                    Ok(operand) => operand,
+                    _ => return Err(ExitCode::from(65)),
+                };
+                Ok(Expr::Unary {
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(operand),
+                })
+            }
+            /*Token::Character('!') => {
                 lexer.next();
                 let operand = match parse_unary(lexer, depth) {
                     Ok(operand) => operand,
@@ -62,7 +75,7 @@ fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
                     _ => return Err(ExitCode::from(65)),
                 };
                 Ok(format!("(- {operand})"))
-            }
+            }*/
             _ => parse_primary(lexer, depth),
         }
     } else {
@@ -71,10 +84,9 @@ fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     }
 }
 
-fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
-    let mut result: String;
-    match parse_unary(lexer, depth) {
-        Ok(s) => result = s,
+fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
+    let mut result = match parse_unary(lexer, depth) {
+        Ok(s) => s,
         Err(_) => return Err(ExitCode::from(65)),
     };
     while let Some((t, _)) = lexer.peek() {
@@ -85,7 +97,12 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
                     Ok(s) => s,
                     Err(_) => return Err(ExitCode::from(65)),
                 };
-                result = format!("({op} {result} {right})");
+                // result = format!("({op} {result} {right})");
+                result = Expr::Binary {
+                    left: Box::new(result),
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(right),
+                }
             }
             _ => break,
         }
@@ -93,7 +110,7 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     Ok(result)
 }
 
-fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     let mut result = match parse_factor(lexer, depth) {
         Ok(s) => s,
         Err(_) => return Err(ExitCode::from(65)),
@@ -106,7 +123,12 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
                     Ok(s) => s,
                     Err(_) => return Err(ExitCode::from(65)),
                 };
-                result = format!("({op} {result} {right})");
+                // result = format!("({op} {result} {right})");
+                result = Expr::Binary {
+                    left: Box::new(result),
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(right),
+                }
             }
             _ => break,
         }
@@ -114,7 +136,7 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     Ok(result)
 }
 
-fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     let mut result = match parse_term(lexer, depth) {
         Ok(s) => s,
         Err(_) => return Err(ExitCode::from(65)),
@@ -127,7 +149,12 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode
                     Ok(s) => s,
                     Err(_) => return Err(ExitCode::from(65)),
                 };
-                result = format!("({op} {result} {right})");
+                // result = format!("({op} {result} {right})");
+                result = Expr::Binary {
+                    left: Box::new(result),
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(right),
+                }
             }
             Token::CharacterDouble(c1, c2) if matches!(c1, '<' | '>') && c2 == '=' => {
                 let op = lexer.next().unwrap().0;
@@ -135,7 +162,12 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode
                     Ok(s) => s,
                     Err(_) => return Err(ExitCode::from(65)),
                 };
-                result = format!("({op} {result} {right})");
+                // result = format!("({op} {result} {right})");
+                result = Expr::Binary {
+                    left: Box::new(result),
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(right),
+                }
             }
             _ => break,
         }
@@ -143,7 +175,7 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode
     Ok(result)
 }
 
-fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     let mut result = match parse_comparisson(lexer, depth) {
         Ok(s) => s,
         Err(_) => return Err(ExitCode::from(65)),
@@ -156,7 +188,12 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
                     Ok(s) => s,
                     Err(_) => return Err(ExitCode::from(65)),
                 };
-                result = format!("({op} {result} {right})");
+                // result = format!("({op} {result} {right})");
+                result = Expr::Binary {
+                    left: Box::new(result),
+                    op: op.to_string().chars().next().unwrap(),
+                    right: Box::new(right),
+                }
             }
             _ => break,
         }
@@ -164,7 +201,7 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
     Ok(result)
 }
 
-fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     let result = match parse_equality(lexer, depth) {
         Ok(s) => s,
         Err(_) => return Err(ExitCode::from(65)),
@@ -172,17 +209,17 @@ fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode>
     Ok(result)
 }
 
-fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<String, ExitCode> {
+fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     parse_expression(lexer, depth)
 }
 
-pub fn parse(file_contents: &str) -> ExitCode {
+pub fn parse(file_contents: &str) -> Result<Expr, ExitCode> {
     let mut lexer = Lexer::new(&file_contents);
     match recursive_parse(&mut lexer, 0) {
         Ok(s) => {
-            println!("{s}");
-            ExitCode::SUCCESS
-        },
-        _ => ExitCode::from(65),
+            // println!("{}", s.to_string());
+            Ok(s)
+        }
+        _ => Err(ExitCode::from(65)),
     }
 }
