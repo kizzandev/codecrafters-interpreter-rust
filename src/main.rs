@@ -1,4 +1,4 @@
-use std::{env, result};
+use std::env;
 use std::process::ExitCode;
 
 mod ast;
@@ -38,7 +38,7 @@ fn main() -> ExitCode {
         "evaluate" => {
             let result = match parse(&file_contents) {
                 Ok(expr) => {
-                    println!("{}", evaluate(&expr));
+                    println!("{}", evaluate(&expr).to_string());
                     ExitCode::SUCCESS
                 }
                 _ => ExitCode::from(65),
