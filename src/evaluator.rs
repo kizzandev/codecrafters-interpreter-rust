@@ -21,6 +21,13 @@ impl Res {
             _ => false,
         }
     }
+
+    fn get_number(&self) -> f64 {
+        match self {
+            Res::Number(n) => *n,
+            _ => panic!("Not a number"),
+        }
+    }
 }
 
 pub fn evaluate(expr: &Expr) -> Res {
@@ -36,14 +43,14 @@ pub fn evaluate(expr: &Expr) -> Res {
             let op = match op {
                 '-' => {
                     if right.is_number() {
-                        (-(right.to_string().parse::<f64>().unwrap())).to_string()
+                        (-(right.get_number())).to_string()
                     } else {
                         panic!("Invalid unary operator: {op}")
                     }
                 }
                 '!' => {
                     if right.is_number() {
-                        if right.to_string().parse::<f64>().unwrap() != 0.0 {
+                        if right.get_number() != 0.0 {
                             Expr::ReservedKeyword("false".to_string()).to_string()
                         } else {
                             Expr::ReservedKeyword("true".to_string()).to_string()
@@ -77,42 +84,42 @@ pub fn evaluate(expr: &Expr) -> Res {
             let op = match op {
                 '+' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() + right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() + right.get_number()).to_string()
                     } else {
                         format!("{}{}", left.to_string(), right.to_string())
                     }
                 }
                 '-' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() - right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() - right.get_number()).to_string()
                     } else {
                         panic!("Invalid binary operator: {op}")
                     }
                 }
                 '*' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() * right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() * right.get_number()).to_string()
                     } else {
                         panic!("Invalid binary operator: {op}")
                     }
                 }
                 '/' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() / right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() / right.get_number()).to_string()
                     } else {
                         panic!("Invalid binary operator: {op}")
                     }
                 }
                 '<' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() < right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() < right.get_number()).to_string()
                     } else {
                         panic!("Invalid binary operator: {op}")
                     }
                 }
                 '>' => {
                     if left.is_number() && right.is_number() {
-                        (left.to_string().parse::<f64>().unwrap() > right.to_string().parse::<f64>().unwrap()).to_string()
+                        (left.get_number() > right.get_number()).to_string()
                     } else {
                         panic!("Invalid binary operator: {op}")
                     }
@@ -128,8 +135,8 @@ pub fn evaluate(expr: &Expr) -> Res {
                 ('<', '=') => {
                     if left.is_number() && right.is_number() {
                         Res::StringLiteral(
-                            (left.to_string().parse::<f64>().unwrap()
-                                <= right.to_string().parse::<f64>().unwrap())
+                            (left.get_number()
+                                <= right.get_number())
                             .to_string(),
                         )
                     } else {
@@ -139,8 +146,8 @@ pub fn evaluate(expr: &Expr) -> Res {
                 ('>', '=') => {
                     if left.is_number() && right.is_number() {
                         Res::StringLiteral(
-                            (left.to_string().parse::<f64>().unwrap()
-                                >= right.to_string().parse::<f64>().unwrap())
+                            (left.get_number()
+                                >= right.get_number())
                             .to_string(),
                         )
                     } else {
