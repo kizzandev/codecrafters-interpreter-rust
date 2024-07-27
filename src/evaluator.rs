@@ -51,17 +51,42 @@ pub fn evaluate(expr: &Expr) -> String {
         Expr::Binary { left, op, right } => {
             let left = evaluate(left);
             let right = evaluate(right);
-            if left.parse::<f64>().is_err() || right.parse::<f64>().is_err() {
-                panic!("Invalid binary operator: {op}")
-            }
             let op = match op {
-                '+' => left.parse::<f64>().unwrap() + right.parse::<f64>().unwrap(),
-                '-' => left.parse::<f64>().unwrap() - right.parse::<f64>().unwrap(),
-                '*' => left.parse::<f64>().unwrap() * right.parse::<f64>().unwrap(),
-                '/' => left.parse::<f64>().unwrap() / right.parse::<f64>().unwrap(),
+                '+' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() + right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        format!("{left}{right}")
+                    }
+                },
+                '-' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() - right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        panic!("Invalid binary operator: {op}")
+                    }
+                }
+                '*' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() * right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        panic!("Invalid binary operator: {op}")
+                    }
+                }
+                '/' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() / right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        panic!("Invalid binary operator: {op}")
+                    }
+                }
                 _ => panic!("Invalid binary operator: {op}"),
             };
-            op.to_string()
+            op
         }
         Expr::Comparison { left, op, right } => {
             let left = evaluate(left);
