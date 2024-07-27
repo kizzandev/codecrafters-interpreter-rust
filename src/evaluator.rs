@@ -43,7 +43,7 @@ pub fn evaluate(expr: &Expr) -> Res {
             match op {
                 '-' => {
                     if right.is_number() {
-                        Res::Number(-(right.get_number()))
+                        Res::Number(-right.get_number())
                     } else {
                         panic!("Invalid unary operator: {op} {}", right.to_string())
                     }
@@ -51,25 +51,25 @@ pub fn evaluate(expr: &Expr) -> Res {
                 '!' => {
                     if right.is_number() {
                         if right.get_number() != 0.0 {
-                            Res::StringLiteral(Expr::ReservedKeyword("false".to_string()).to_string())
+                            Res::StringLiteral("false".to_string())
                         } else {
-                            Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
+                            Res::StringLiteral("true".to_string())
                         }
-                    } else if right.to_string().eq(Expr::ReservedKeyword("true".to_string())
+                    } else if right
                         .to_string()
-                        .as_str())
+                        .eq(("true".to_string()).to_string().as_str())
                     {
-                        Res::StringLiteral(Expr::ReservedKeyword("false".to_string()).to_string())
-                    } else if right.to_string().eq(Expr::ReservedKeyword("false".to_string())
+                        Res::StringLiteral("false".to_string())
+                    } else if right
                         .to_string()
-                        .as_str())
+                        .eq(("false".to_string()).to_string().as_str())
                     {
-                        Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
-                    } else if right.to_string().eq(Expr::ReservedKeyword("nil".to_string())
+                        Res::StringLiteral("true".to_string())
+                    } else if right
                         .to_string()
-                        .as_str())
+                        .eq(("nil".to_string()).to_string().as_str())
                     {
-                        Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
+                        Res::StringLiteral("true".to_string())
                     } else {
                         panic!("Invalid unary operator: {op}")
                     }
@@ -80,52 +80,75 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::Binary { left, op, right } => {
             let left = evaluate(left);
             let right = evaluate(right);
-            let op = match op {
+            match op {
                 '+' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() + right.get_number()).to_string()
+                        Res::Number(left.get_number() + right.get_number())
                     } else {
-                        format!("{}{}", left.to_string(), right.to_string())
+                        Res::StringLiteral(format!("{}{}", left.to_string(), right.to_string()))
                     }
                 }
                 '-' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() - right.get_number()).to_string()
+                        Res::Number(left.get_number() - right.get_number())
                     } else {
-                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
+                        panic!(
+                            "Invalid binary operator: {} {op} {}",
+                            left.to_string(),
+                            right.to_string()
+                        )
                     }
                 }
                 '*' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() * right.get_number()).to_string()
+                        Res::Number(left.get_number() * right.get_number())
                     } else {
-                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
+                        panic!(
+                            "Invalid binary operator: {} {op} {}",
+                            left.to_string(),
+                            right.to_string()
+                        )
                     }
                 }
                 '/' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() / right.get_number()).to_string()
+                        Res::Number(left.get_number() / right.get_number())
                     } else {
-                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
+                        panic!(
+                            "Invalid binary operator: {} {op} {}",
+                            left.to_string(),
+                            right.to_string()
+                        )
                     }
                 }
                 '<' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() < right.get_number()).to_string()
+                        Res::StringLiteral((left.get_number() < right.get_number()).to_string())
                     } else {
-                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
+                        panic!(
+                            "Invalid binary operator: {} {op} {}",
+                            left.to_string(),
+                            right.to_string()
+                        )
                     }
                 }
                 '>' => {
                     if left.is_number() && right.is_number() {
-                        (left.get_number() > right.get_number()).to_string()
+                        Res::StringLiteral((left.get_number() > right.get_number()).to_string())
                     } else {
-                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
+                        panic!(
+                            "Invalid binary operator: {} {op} {}",
+                            left.to_string(),
+                            right.to_string()
+                        )
                     }
                 }
-                _ => panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string()),
-            };
-            Res::StringLiteral(op)
+                _ => panic!(
+                    "Invalid binary operator: {} {op} {}",
+                    left.to_string(),
+                    right.to_string()
+                ),
+            }
         }
         Expr::Comparison { left, op, right } => {
             let left = evaluate(left);
@@ -133,22 +156,14 @@ pub fn evaluate(expr: &Expr) -> Res {
             let op = match op {
                 ('<', '=') => {
                     if left.is_number() && right.is_number() {
-                        Res::StringLiteral(
-                            (left.get_number()
-                                <= right.get_number())
-                            .to_string(),
-                        )
+                        Res::StringLiteral((left.get_number() <= right.get_number()).to_string())
                     } else {
                         panic!("Invalid comparison operator: {}{}", op.0, op.1)
                     }
                 }
                 ('>', '=') => {
                     if left.is_number() && right.is_number() {
-                        Res::StringLiteral(
-                            (left.get_number()
-                                >= right.get_number())
-                            .to_string(),
-                        )
+                        Res::StringLiteral((left.get_number() >= right.get_number()).to_string())
                     } else {
                         panic!("Invalid comparison operator: {}{}", op.0, op.1)
                     }
