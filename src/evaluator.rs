@@ -28,6 +28,10 @@ impl Res {
             _ => panic!("Not a number"),
         }
     }
+
+    fn is_same_type(&self, other: &Res) -> bool {
+        (self.is_number() && other.is_number()) || (!self.is_number() && !other.is_number())
+    }
 }
 
 pub fn evaluate(expr: &Expr) -> Res {
@@ -153,6 +157,15 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::Comparison { left, op, right } => {
             let left = evaluate(left);
             let right = evaluate(right);
+            if !left.is_same_type(&right) {
+                panic!(
+                    "Invalid comparison operator: {} {}{} {}",
+                    left.to_string(),
+                    op.0,
+                    op.1,
+                    right.to_string()
+                )
+            }
             let op = match op {
                 ('<', '=') => {
                     if left.is_number() && right.is_number() {
