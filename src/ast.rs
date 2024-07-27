@@ -45,6 +45,7 @@ impl Expr {
                 format!("({} {} {})", op, left.to_string(), right.to_string())
             }
             Expr::Grouping(expr) => format!("(group {})", expr.to_string()),
+            _ => "".to_string(),
         }
     }
 }

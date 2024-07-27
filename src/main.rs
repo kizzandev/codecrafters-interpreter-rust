@@ -1,4 +1,4 @@
-use std::env;
+use std::{env, result};
 use std::process::ExitCode;
 
 mod ast;
@@ -27,8 +27,13 @@ fn main() -> ExitCode {
     return match command.as_str() {
         "tokenize" => tokenize(&file_contents),
         "parse" => {
-            println!("{}", parse(&file_contents).ok().unwrap().to_string());
-            ExitCode::SUCCESS
+            match parse(&file_contents) {
+                Ok(expr) => {
+                    println!("{}", expr.to_string());
+                    ExitCode::SUCCESS
+                }
+                _ => ExitCode::from(65),
+            }
         }
         "evaluate" => {
             let result = match parse(&file_contents) {
