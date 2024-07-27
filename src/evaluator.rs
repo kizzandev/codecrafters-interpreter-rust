@@ -157,7 +157,7 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::Comparison { left, op, right } => {
             let left = evaluate(left);
             let right = evaluate(right);
-            if !left.is_same_type(&right) {
+            /*if !left.is_same_type(&right) {
                 panic!(
                     "Invalid comparison operator: {} {}{} {}",
                     left.to_string(),
@@ -165,7 +165,7 @@ pub fn evaluate(expr: &Expr) -> Res {
                     op.1,
                     right.to_string()
                 )
-            }
+            }*/
             let op = match op {
                 ('<', '=') => {
                     if left.is_number() && right.is_number() {
