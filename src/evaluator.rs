@@ -121,7 +121,7 @@ pub fn evaluate(expr: &Expr) -> Res {
                     if left.is_number() && right.is_number() {
                         (left.get_number() > right.get_number()).to_string()
                     } else {
-                        panic!("Invalid binary operator: {op}")
+                        panic!("Invalid binary operator: {} {op} {}", left.to_string(), right.to_string())
                     }
                 }
                 _ => panic!("Invalid binary operator: {op}"),
