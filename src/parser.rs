@@ -167,9 +167,13 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> 
                     Err(_) => return Err(ExitCode::from(65)),
                 };
                 // result = format!("({op} {result} {right})");
-                result = Expr::Binary {
+                result = Expr::Comparison {
                     left: Box::new(result),
-                    op: op.to_string().chars().next().unwrap(),
+                    op: match op.to_string().chars().next().unwrap() {
+                        '<' => ('<', '='),
+                        '>' => ('>', '='),
+                        _ => unreachable!(),
+                    },
                     right: Box::new(right),
                 }
             }
@@ -193,9 +197,13 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                     Err(_) => return Err(ExitCode::from(65)),
                 };
                 // result = format!("({op} {result} {right})");
-                result = Expr::Binary {
+                result = Expr::Comparison {
                     left: Box::new(result),
-                    op: op.to_string().chars().next().unwrap(),
+                    op: match op.to_string().chars().next().unwrap() {
+                        '=' => ('=', '='),
+                        '!' => ('!', '='),
+                        _ => unreachable!(),
+                    },
                     right: Box::new(right),
                 }
             }
