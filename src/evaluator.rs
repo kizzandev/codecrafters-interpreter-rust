@@ -32,7 +32,7 @@ impl Res {
 
 pub fn evaluate(expr: &Expr) -> Res {
     match expr {
-        Expr::Number(n) => Res::Number(n.to_owned()),
+        Expr::Number(n) => Res::Number(*n),
         Expr::StringLiteral(s) => Res::StringLiteral(s.to_string()),
         Expr::Identifier(i) => Res::StringLiteral(i.to_string()),
         Expr::Character(c) => Res::StringLiteral(c.to_string()),
