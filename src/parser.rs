@@ -20,7 +20,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     if let Some((t, _)) = lexer.next() {
         match t {
             Token::ReservedKeyword(k) => Ok(Expr::ReservedKeyword(k.to_string())),
-            Token::Number((n_raw, _)) => Ok(Expr::Number(n_raw.parse().unwrap())),
+            Token::Number((_, n)) => Ok(Expr::Number(n)),
             Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
             Token::UnterminatedStringLiteral => {
                 eprintln!("Error: Unterminated string literal.");
