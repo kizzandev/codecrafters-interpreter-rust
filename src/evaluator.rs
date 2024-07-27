@@ -45,7 +45,7 @@ pub fn evaluate(expr: &Expr) -> Res {
                     if right.is_number() {
                         Res::Number(-(right.get_number()))
                     } else {
-                        panic!("Invalid unary operator: {op}")
+                        panic!("Invalid unary operator: {op} {}", right.to_string())
                     }
                 }
                 '!' => {
