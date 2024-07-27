@@ -40,10 +40,10 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::ReservedKeyword(k) => Res::StringLiteral(k.to_string()),
         Expr::Unary { op, right } => {
             let right = evaluate(right);
-            let op = match op {
+            match op {
                 '-' => {
                     if right.is_number() {
-                        (-(right.get_number())).to_string()
+                        Res::Number(-(right.get_number()))
                     } else {
                         panic!("Invalid unary operator: {op}")
                     }
@@ -51,32 +51,31 @@ pub fn evaluate(expr: &Expr) -> Res {
                 '!' => {
                     if right.is_number() {
                         if right.get_number() != 0.0 {
-                            Expr::ReservedKeyword("false".to_string()).to_string()
+                            Res::StringLiteral(Expr::ReservedKeyword("false".to_string()).to_string())
                         } else {
-                            Expr::ReservedKeyword("true".to_string()).to_string()
+                            Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
                         }
                     } else if right.to_string().eq(Expr::ReservedKeyword("true".to_string())
                         .to_string()
                         .as_str())
                     {
-                        Expr::ReservedKeyword("false".to_string()).to_string()
+                        Res::StringLiteral(Expr::ReservedKeyword("false".to_string()).to_string())
                     } else if right.to_string().eq(Expr::ReservedKeyword("false".to_string())
                         .to_string()
                         .as_str())
                     {
-                        Expr::ReservedKeyword("true".to_string()).to_string()
+                        Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
                     } else if right.to_string().eq(Expr::ReservedKeyword("nil".to_string())
                         .to_string()
                         .as_str())
                     {
-                        Expr::ReservedKeyword("true".to_string()).to_string()
+                        Res::StringLiteral(Expr::ReservedKeyword("true".to_string()).to_string())
                     } else {
                         panic!("Invalid unary operator: {op}")
                     }
                 }
                 _ => panic!("Invalid unary operator: {op}"),
-            };
-            Res::StringLiteral(op)
+            }
         }
         Expr::Binary { left, op, right } => {
             let left = evaluate(left);
