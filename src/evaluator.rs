@@ -3,6 +3,7 @@ use crate::ast::Expr;
 pub enum Res {
     Number(f64),
     StringLiteral(String),
+    Bool(String),
     RuntimeError(String),
 }
 
@@ -11,6 +12,7 @@ impl Res {
         match self {
             Res::Number(n) => n.to_string(),
             Res::StringLiteral(s) => s.to_string(),
+            Res::Bool(s) => s.to_string(),
             Res::RuntimeError(s) => s.to_string(),
         }
     }
@@ -24,6 +26,20 @@ impl Res {
         }
     }
 
+    fn is_bool(&self) -> bool {
+        match self {
+            Res::Bool(_) => true,
+            _ => false,
+        }
+    }
+
+    fn is_string(&self) -> bool {
+        match self {
+            Res::StringLiteral(_) => true,
+            _ => false,
+        }
+    }
+
     fn get_number(&self) -> f64 {
         match self {
             Res::Number(n) => *n,
@@ -32,7 +48,9 @@ impl Res {
     }
 
     fn is_same_type(&self, other: &Res) -> bool {
-        (self.is_number() && other.is_number()) || (!self.is_number() && !other.is_number())
+        (self.is_number() && other.is_number())
+            || (self.is_string() && other.is_string())
+            || (self.is_bool() && other.is_bool())
     }
 
     pub fn is_runtime_error(&self) -> bool {
@@ -103,6 +121,9 @@ pub fn evaluate(expr: &Expr) -> Res {
             let right = evaluate(right);
             match op {
                 '+' => {
+                    if !left.is_same_type(&right) {
+                        return operands_must_be_numbers();
+                    }
                     if left.is_number() && right.is_number() {
                         Res::Number(left.get_number() + right.get_number())
                     } else {
@@ -110,6 +131,9 @@ pub fn evaluate(expr: &Expr) -> Res {
                     }
                 }
                 '-' => {
+                    if !left.is_same_type(&right) {
+                        return operands_must_be_numbers();
+                    }
                     if left.is_number() && right.is_number() {
                         Res::Number(left.get_number() - right.get_number())
                     } else {
