@@ -84,6 +84,22 @@ pub fn evaluate(expr: &Expr) -> String {
                         panic!("Invalid binary operator: {op}")
                     }
                 }
+                '<' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() < right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        panic!("Invalid binary operator: {op}")
+                    }
+                }
+                '>' => {
+                    if left.parse::<f64>().is_ok() && right.parse::<f64>().is_ok() {
+                        (left.parse::<f64>().unwrap() > right.parse::<f64>().unwrap())
+                            .to_string()
+                    } else {
+                        panic!("Invalid binary operator: {op}")
+                    }
+                }
                 _ => panic!("Invalid binary operator: {op}"),
             };
             op
