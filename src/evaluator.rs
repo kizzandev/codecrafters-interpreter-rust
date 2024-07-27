@@ -203,9 +203,6 @@ pub fn evaluate(expr: &Expr) -> Res {
         Expr::Comparison { left, op, right } => {
             let left = evaluate(left);
             let right = evaluate(right);
-            if !left.is_same_type(&right) {
-                return Res::StringLiteral("false".to_string());
-            }
             let op = match op {
                 ('<', '=') => {
                     if !left.is_same_type(&right) {
@@ -228,9 +225,15 @@ pub fn evaluate(expr: &Expr) -> Res {
                     }
                 }
                 ('=', '=') => {
+                    if !left.is_same_type(&right) {
+                        return Res::StringLiteral("false".to_string());
+                    }
                     Res::StringLiteral((left.to_string() == right.to_string()).to_string())
                 }
                 ('!', '=') => {
+                    if !left.is_same_type(&right) {
+                        return Res::StringLiteral("false".to_string());
+                    }
                     Res::StringLiteral((left.to_string() != right.to_string()).to_string())
                 }
                 _ => panic!("Invalid comparison operator: {}{}", op.0, op.1),
