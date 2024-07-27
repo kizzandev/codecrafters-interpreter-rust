@@ -14,7 +14,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
             Token::UnterminatedStringLiteral => {
                 success = false;
                 eprintln!("[line {line}] Error: Unterminated string.");
-            },
+            }
             Token::Number((raw_s, n)) => println!("NUMBER {raw_s} {n:?}"),
             Token::CharacterDouble(c1, c2) => {
                 let one_of = match (c1, c2) {
@@ -25,7 +25,7 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                     _ => unreachable!(),
                 };
                 println!("{one_of} {c1}{c2} null")
-            },
+            }
             Token::Character(c) => {
                 let one_of = match c {
                     '(' => "LEFT_PAREN",
@@ -51,10 +51,12 @@ pub fn tokenize(file_contents: &str) -> ExitCode {
                 } else {
                     println!("{one_of} {c} null")
                 }
-            },
+            }
         };
-    };
+    }
     println!("EOF  null");
-    if !success { return ExitCode::from(65); }
+    if !success {
+        return ExitCode::from(65);
+    }
     ExitCode::SUCCESS
 }

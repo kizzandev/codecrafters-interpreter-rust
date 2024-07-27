@@ -26,15 +26,13 @@ fn main() -> ExitCode {
 
     return match command.as_str() {
         "tokenize" => tokenize(&file_contents),
-        "parse" => {
-            match parse(&file_contents) {
-                Ok(expr) => {
-                    println!("{}", expr.to_string());
-                    ExitCode::SUCCESS
-                }
-                _ => ExitCode::from(65),
+        "parse" => match parse(&file_contents) {
+            Ok(expr) => {
+                println!("{}", expr.to_string());
+                ExitCode::SUCCESS
             }
-        }
+            _ => ExitCode::from(65),
+        },
         "evaluate" => {
             let result = match parse(&file_contents) {
                 Ok(expr) => {

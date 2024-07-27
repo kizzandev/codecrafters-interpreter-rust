@@ -50,7 +50,13 @@ impl Expr {
                 format!("({} {} {})", op, left.to_string(), right.to_string())
             }
             Expr::Comparison { left, op, right } => {
-                format!("({}{} {} {})", op.0, op.1, left.to_string(), right.to_string())
+                format!(
+                    "({}{} {} {})",
+                    op.0,
+                    op.1,
+                    left.to_string(),
+                    right.to_string()
+                )
             }
             Expr::Grouping(expr) => format!("(group {})", expr.to_string()),
             _ => "".to_string(),

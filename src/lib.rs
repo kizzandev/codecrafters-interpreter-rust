@@ -1,4 +1,7 @@
-use std::{io::{self, Write}, fs};
+use std::{
+    fs,
+    io::{self, Write},
+};
 
 pub fn read_file(filename: &str) -> String {
     fs::read_to_string(filename).unwrap_or_else(|err| {

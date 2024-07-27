@@ -1,40 +1,39 @@
 use std::collections::HashSet;
 
 pub struct Lexer<'input> {
-    contents: &'input str,                  // contents of the file
-    char_indices: Vec<(usize, char)>,       // each char and its index
-    idx: usize,                             // current index
-    line: usize,                            // current line
-    is_comment: bool,                       // whether the current token is a comment
-    reserved_keywords: HashSet<&'input str> // set of reserved keywords
+    contents: &'input str,                   // contents of the file
+    char_indices: Vec<(usize, char)>,        // each char and its index
+    idx: usize,                              // current index
+    line: usize,                             // current line
+    is_comment: bool,                        // whether the current token is a comment
+    reserved_keywords: HashSet<&'input str>, // set of reserved keywords
 }
 
 // The keywords to be used
 const RESERVED_KEYWORDS: &'static [&'static str] = &[
-    "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print",
-    "return", "super", "this", "true", "var", "while"
+    "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print", "return", "super",
+    "this", "true", "var", "while",
 ];
 
 // Two characters that works as a single token
-const DOUBLE_CHARACTERS: &'static [(char, char)] = &[
-    ('=', '='), ('!', '='), ('<', '='), ('>', '='), ('/', '/')
-];
+const DOUBLE_CHARACTERS: &'static [(char, char)] =
+    &[('=', '='), ('!', '='), ('<', '='), ('>', '='), ('/', '/')];
 
 impl<'input> Lexer<'input> {
     pub fn new(contents: &'input str) -> Self {
         let reserved_keywords = RESERVED_KEYWORDS
-                                .iter()         // iterates over the array
-                                .map(|k| *k)    // converts the array to a vector
-                                .collect();     // collects the vector into a HashSet
+            .iter() // iterates over the array
+            .map(|k| *k) // converts the array to a vector
+            .collect(); // collects the vector into a HashSet
         Self {
             contents,
             char_indices: contents
-                            .char_indices()        // get the char indicies
-                            .collect::<Vec<_>>(),  // convert the char indicies to a vector
+                .char_indices() // get the char indicies
+                .collect::<Vec<_>>(), // convert the char indicies to a vector
             idx: 0,
             line: 1,
             is_comment: false,
-            reserved_keywords
+            reserved_keywords,
         }
     }
 }
@@ -95,10 +94,14 @@ impl<'input> Iterator for Lexer<'input> {
         }
 
         // Comment
-        if self.is_comment { return self.next(); }
+        if self.is_comment {
+            return self.next();
+        }
 
         // Whitespace
-        if c == ' ' || c == '\t' { return self.next(); }
+        if c == ' ' || c == '\t' {
+            return self.next();
+        }
 
         // Keywords and identifiers
         if c.is_alphabetic() || c == '_' {
@@ -110,10 +113,7 @@ impl<'input> Iterator for Lexer<'input> {
                         return Some((Token::ReservedKeyword(identifier), self.line));
                     }
                     // Not a reserved keyword
-                    return Some((
-                        Token::Identifier(identifier),
-                        self.line
-                    ))
+                    return Some((Token::Identifier(identifier), self.line));
                 };
                 let (c_next_idx, c_next) = self.char_indices[self.idx];
                 if !c_next.is_ascii_alphanumeric() && c_next != '_' {
@@ -138,7 +138,10 @@ impl<'input> Iterator for Lexer<'input> {
                 let (c_next_idx, c_next) = self.char_indices[self.idx];
                 if c_next == '"' {
                     self.idx += 1;
-                    return Some((Token::StringLiteral(&self.contents[c_idx + 1..c_next_idx]), self.line));
+                    return Some((
+                        Token::StringLiteral(&self.contents[c_idx + 1..c_next_idx]),
+                        self.line,
+                    ));
                 }
                 self.idx += 1;
             }
@@ -153,8 +156,8 @@ impl<'input> Iterator for Lexer<'input> {
                 let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
                     let raw = &self.contents[c_idx..]; // get rest of the string
-                    // Possible edge case where the last character is NOT
-                    // a valid value
+                                                       // Possible edge case where the last character is NOT
+                                                       // a valid value
                     let (_, c) = self.char_indices[self.idx - 1];
                     if c != ' ' && c != '\t' && c != '\n' && !c.is_ascii_digit() {
                         self.idx -= 1;
@@ -197,9 +200,10 @@ impl<'input> Iterator for Lexer<'input> {
         }
 
         // Single characters
-        return Some((Token::Character(
-                        self.char_indices[self.idx - 1].1),
-                        self.line));
+        return Some((
+            Token::Character(self.char_indices[self.idx - 1].1),
+            self.line,
+        ));
     }
 }
 
