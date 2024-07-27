@@ -47,6 +47,10 @@ fn operand_must_be_number() -> Res {
     Res::RuntimeError("Operand must be a number.".to_string())
 }
 
+fn operands_must_be_numbers() -> Res {
+    Res::RuntimeError("Operands must be numbers.".to_string())
+}
+
 pub fn evaluate(expr: &Expr) -> Res {
     match expr {
         Expr::Number(n) => Res::Number(*n),
@@ -109,33 +113,21 @@ pub fn evaluate(expr: &Expr) -> Res {
                     if left.is_number() && right.is_number() {
                         Res::Number(left.get_number() - right.get_number())
                     } else {
-                        panic!(
-                            "Invalid binary operator: {} {op} {}",
-                            left.to_string(),
-                            right.to_string()
-                        )
+                        operands_must_be_numbers()
                     }
                 }
                 '*' => {
                     if left.is_number() && right.is_number() {
                         Res::Number(left.get_number() * right.get_number())
                     } else {
-                        panic!(
-                            "Invalid binary operator: {} {op} {}",
-                            left.to_string(),
-                            right.to_string()
-                        )
+                        operands_must_be_numbers()
                     }
                 }
                 '/' => {
                     if left.is_number() && right.is_number() {
                         Res::Number(left.get_number() / right.get_number())
                     } else {
-                        panic!(
-                            "Invalid binary operator: {} {op} {}",
-                            left.to_string(),
-                            right.to_string()
-                        )
+                        operands_must_be_numbers()
                     }
                 }
                 '<' => {
