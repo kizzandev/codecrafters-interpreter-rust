@@ -22,6 +22,10 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             Token::ReservedKeyword(k) => Ok(Expr::ReservedKeyword(k.to_string())),
             Token::Number((n_raw, _)) => Ok(Expr::Number(n_raw.parse().unwrap())),
             Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
+            Token::UnterminatedStringLiteral => {
+                eprintln!("Error: Unterminated string literal.");
+                Err(ExitCode::from(65))
+            }
             Token::Character('(') => {
                 let expr = match parse_expression(lexer, depth + 1) {
                     Ok(expr) => expr,
