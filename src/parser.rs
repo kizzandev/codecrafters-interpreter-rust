@@ -3,7 +3,7 @@ use std::process::ExitCode;
 use crate::ast::Expr;
 use crate::lexer::{Lexer, Token};
 
-fn parse_number(n_raw: &str) -> String {
+fn _parse_number(n_raw: &str) -> String {
     if n_raw.contains('.') {
         let n_raw = n_raw.trim_end_matches('0').trim_end_matches('.');
         if n_raw.contains('.') {

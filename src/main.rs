@@ -33,21 +33,18 @@ fn main() -> ExitCode {
             }
             _ => ExitCode::from(65),
         },
-        "evaluate" => {
-            let result = match parse(&file_contents) {
-                Ok(expr) => {
-                    let eval = evaluate(&expr);
-                    if eval.is_runtime_error() {
-                        eprintln!("{}", eval.to_string());
-                        return ExitCode::from(70);
-                    }
-                    println!("{}", eval.to_string());
-                    ExitCode::SUCCESS
+        "evaluate" => match parse(&file_contents) {
+            Ok(expr) => {
+                let eval = evaluate(&expr);
+                if eval.is_runtime_error() {
+                    eprintln!("{}", eval.to_string());
+                    return ExitCode::from(70);
                 }
-                _ => ExitCode::from(65),
-            };
-            result
-        }
+                println!("{}", eval.to_string());
+                ExitCode::SUCCESS
+            }
+            _ => ExitCode::from(65),
+        },
         _ => {
             eprintln!("Usage: {} <action> <filename>", args[0]);
             ExitCode::from(65)

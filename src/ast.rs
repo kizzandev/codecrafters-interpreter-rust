@@ -1,3 +1,4 @@
+#[allow(dead_code)]
 pub enum Expr {
     Number(f64),
     StringLiteral(String),
@@ -59,7 +60,6 @@ impl Expr {
                 )
             }
             Expr::Grouping(expr) => format!("(group {})", expr.to_string()),
-            _ => "".to_string(),
         }
     }
 }
