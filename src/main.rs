@@ -3,11 +3,13 @@ use std::process::ExitCode;
 
 mod ast;
 mod evaluator;
+mod interpreter;
 mod lexer;
 mod parser;
 mod tokenizer;
 
 use crate::evaluator::evaluate;
+use crate::interpreter::interpret;
 use crate::parser::parse;
 use crate::tokenizer::tokenize;
 use interpreter_starter_rust::read_file;
@@ -33,7 +35,7 @@ fn main() -> ExitCode {
             }
             _ => ExitCode::from(65),
         },
-        "evaluate" => match parse(&file_contents) {
+        "evaluate" | "run" => match parse(&file_contents) {
             Ok(expr) => {
                 let eval = evaluate(&expr);
                 if eval.is_runtime_error() {
@@ -45,6 +47,7 @@ fn main() -> ExitCode {
             }
             _ => ExitCode::from(65),
         },
+        // "run" => interpret(&file_contents),
         _ => {
             eprintln!("Usage: {} <action> <filename>", args[0]);
             ExitCode::from(65)

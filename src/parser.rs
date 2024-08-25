@@ -19,7 +19,21 @@ fn _parse_number(n_raw: &str) -> String {
 fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     if let Some((t, _)) = lexer.next() {
         match t {
-            Token::ReservedKeyword(k) => Ok(Expr::ReservedKeyword(k.to_string())),
+            Token::ReservedKeyword(k) => match k {
+                "print" => {
+                    let expr = match parse_expression(lexer, depth) {
+                        Ok(expr) => expr,
+                        _ => return Err(ExitCode::from(65)),
+                    };
+                    if let Some((Token::Character(';'), _)) = lexer.next() {
+                        return Ok(expr);
+                    } else {
+                        eprintln!("Error: Expected ';' after 'print'.");
+                        return Err(ExitCode::from(65));
+                    }
+                }
+                _ => Ok(Expr::ReservedKeyword(k.to_string())),
+            },
             Token::Number((_, n)) => Ok(Expr::Number(n)),
             Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
             Token::UnterminatedStringLiteral => {

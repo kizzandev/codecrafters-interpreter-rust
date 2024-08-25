@@ -10,7 +10,7 @@ pub struct Lexer<'input> {
 }
 
 // The keywords to be used
-const RESERVED_KEYWORDS: &'static [&'static str] = &[
+pub const RESERVED_KEYWORDS: &'static [&'static str] = &[
     "and", "class", "else", "false", "for", "fun", "if", "nil", "or", "print", "return", "super",
     "this", "true", "var", "while",
 ];
