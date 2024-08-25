@@ -9,7 +9,7 @@ mod parser;
 mod tokenizer;
 
 use crate::evaluator::evaluate;
-use crate::interpreter::interpret;
+// use crate::interpreter::interpret;
 use crate::parser::parse;
 use crate::tokenizer::tokenize;
 use interpreter_starter_rust::read_file;
@@ -30,19 +30,22 @@ fn main() -> ExitCode {
         "tokenize" => tokenize(&file_contents),
         "parse" => match parse(&file_contents) {
             Ok(expr) => {
-                println!("{}", expr.to_string());
+                println!("{}", expr[0].to_string());
                 ExitCode::SUCCESS
             }
             _ => ExitCode::from(65),
         },
         "evaluate" | "run" => match parse(&file_contents) {
             Ok(expr) => {
-                let eval = evaluate(&expr);
-                if eval.is_runtime_error() {
-                    eprintln!("{}", eval.to_string());
-                    return ExitCode::from(70);
+                for e in &expr {
+                    let eval = evaluate(&e);
+                    if eval.is_runtime_error() {
+                        eprintln!("{}", eval.to_string());
+                        return ExitCode::from(70);
+                    }
+                    println!("{}", eval.to_string());
                 }
-                println!("{}", eval.to_string());
+
                 ExitCode::SUCCESS
             }
             _ => ExitCode::from(65),

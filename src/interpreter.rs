@@ -8,7 +8,7 @@ use std::process::ExitCode;
 
 use crate::parser::parse;
 
-pub fn interpret(file_contents: &str) -> ExitCode {
+pub fn _interpret(file_contents: &str) -> ExitCode {
     // The code should be interpreted continuously until an error occurs or the end of the program is reached.
 
     loop {

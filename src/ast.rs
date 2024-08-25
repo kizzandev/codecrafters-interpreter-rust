@@ -1,5 +1,7 @@
 #[allow(dead_code)]
 pub enum Expr {
+    EOF,
+
     Number(f64),
     StringLiteral(String),
     Identifier(String),
@@ -40,6 +42,7 @@ fn parse_number(n: &f64) -> String {
 impl Expr {
     pub fn to_string(&self) -> String {
         match self {
+            Expr::EOF => "EOF".to_string(),
             Expr::Number(n) => parse_number(n),
             Expr::StringLiteral(s) => s.to_string(),
             Expr::Identifier(i) => i.to_string(),

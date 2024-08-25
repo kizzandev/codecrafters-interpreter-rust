@@ -71,6 +71,8 @@ fn operands_must_be_numbers() -> Res {
 
 pub fn evaluate(expr: &Expr) -> Res {
     match expr {
+        Expr::EOF => Res::StringLiteral("EOF".to_string()),
+
         Expr::Number(n) => Res::Number(*n),
         Expr::StringLiteral(s) => Res::StringLiteral(s.to_string()),
         Expr::Identifier(i) => Res::StringLiteral(i.to_string()),

@@ -59,8 +59,10 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             }
         }
     } else {
-        eprintln!("Error: Unexpected end of input.");
-        Err(ExitCode::from(65))
+        // eprintln!("Error: Unexpected end of input.");
+        // eprintln!("The end?");
+        // Err(ExitCode::from(65))
+        Ok(Expr::EOF)
     }
 }
 
@@ -97,8 +99,9 @@ fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             _ => parse_primary(lexer, depth),
         }
     } else {
-        eprintln!("Error: Unexpected end of input.");
-        Err(ExitCode::from(65))
+        // eprintln!("Error: Unexpected end of input.");
+        // Err(ExitCode::from(65))
+        parse_primary(lexer, depth)
     }
 }
 
@@ -239,13 +242,26 @@ fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     parse_expression(lexer, depth)
 }
 
-pub fn parse(file_contents: &str) -> Result<Expr, ExitCode> {
+pub fn parse(file_contents: &str) -> Result<Vec<Expr>, ExitCode> {
     let mut lexer = Lexer::new(&file_contents);
-    match recursive_parse(&mut lexer, 0) {
+
+    let mut results: Vec<Expr> = Vec::new();
+
+    loop {
+        match recursive_parse(&mut lexer, 0) {
+            Ok(expr) if expr.to_string() == "EOF" => break,
+            Ok(expr) => results.push(expr),
+            _ => return Err(ExitCode::from(65)),
+        }
+    }
+
+    Ok(results)
+
+    /*match recursive_parse(&mut lexer, 0) {
         Ok(s) => {
             // println!("{}", s.to_string());
             Ok(s)
         }
         _ => Err(ExitCode::from(65)),
-    }
+    }*/
 }
