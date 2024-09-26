@@ -60,6 +60,11 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         ),
                                     );
                                 }
+                                "ReservedKeyword" => {
+                                    return Ok(Expr::ReservedKeyword(
+                                        "print".to_string() + &expr.to_string(),
+                                    ));
+                                }
                                 _ => {
                                     eprintln!("\nexpr type: {}", expr.get_type());
                                     eprintln!("expr_value: {}", expr.to_string());
@@ -122,12 +127,15 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                 }
             }
             Token::Character(';') => Ok(Expr::Character(';')),
+            Token::CharacterDouble(first, second) => Ok(Expr::CharacterDouble(first, second)),
             _ => {
                 eprintln!(
-                    "Error: Unexpected token at {}:{}.",
+                    "Error: Unexpected token |{}| at {}:{}.",
+                    t,
                     lexer.get_line(),
                     lexer.get_index()
                 );
+                eprintln!("Token is: {}", t);
                 Err(ExitCode::from(65))
             }
         }
