@@ -68,6 +68,11 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         return Err(ExitCode::from(70));
                                     }
 
+                                    return Ok(Expr::ReservedKeyword(
+                                        "print".to_string() + &expr.to_string(),
+                                    ));
+                                }
+                                "Binary" => {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
@@ -78,11 +83,6 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         result => result,
                                     };
 
-                                    return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &eval_expr.to_string(),
-                                    ));
-                                }
-                                "Binary" => {
                                     return Ok(Expr::ReservedKeyword(
                                         "print".to_string() + &expr.to_string(),
                                     ));
