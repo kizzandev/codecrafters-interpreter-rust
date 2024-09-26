@@ -87,6 +87,20 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         "print".to_string() + &eval_expr.to_string(),
                                     ));
                                 }
+                                "Comparison" => {
+                                    let eval_expr = match evaluate(&expr) {
+                                        Res::RuntimeError(_) => {
+                                            if CATCH_ERROR {
+                                                eprintln!("returning error in primary");
+                                            };
+                                            return Err(ExitCode::from(70));
+                                        }
+                                        result => result,
+                                    };
+                                    return Ok(Expr::ReservedKeyword(
+                                        "print".to_string() + &eval_expr.to_string(),
+                                    ));
+                                }
                                 _ => {
                                     eprintln!("\nexpr type: {}", expr.get_type());
                                     eprintln!("expr_value: {}", expr.to_string());
