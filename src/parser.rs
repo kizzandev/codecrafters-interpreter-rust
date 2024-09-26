@@ -61,6 +61,15 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     );
                                 }
                                 "ReservedKeyword" => {
+                                    let after_print = lexer.peek();
+                                    if after_print.is_some() && after_print.unwrap().0 != Token::Character(';') {
+                                        return Err(ExitCode::from(70));
+                                    }
+                                    return Ok(Expr::ReservedKeyword(
+                                        "print".to_string() + &expr.to_string(),
+                                    ));
+                                }
+                                "Binary" => {
                                     return Ok(Expr::ReservedKeyword(
                                         "print".to_string() + &expr.to_string(),
                                     ));
@@ -272,8 +281,6 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                 if evaluate(&result).is_runtime_error() {
                     return Err(ExitCode::from(70));
                 }
-
-                eprintln!("Not an eval error");
             }
             _ => break,
         }

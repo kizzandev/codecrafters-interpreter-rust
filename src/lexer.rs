@@ -40,7 +40,7 @@ impl<'input> Lexer<'input> {
 
 // Any Token may be one of the following
 // Using enum for the Named Tuples
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum Token<'input> {
     ReservedKeyword(&'input str),
     Identifier(&'input str),
