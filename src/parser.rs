@@ -29,7 +29,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                 "Unary" => {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => return Err(ExitCode::from(70)),
-                                        _ => &expr,
+                                        result => result,
                                     };
 
                                     match eval_expr.to_string().as_str() {
