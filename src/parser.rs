@@ -4,7 +4,7 @@ use crate::ast::Expr;
 use crate::evaluator::{evaluate, Res};
 use crate::lexer::{Lexer, Token};
 
-const CATCH_ERROR: bool = !false;
+const CATCH_ERROR: bool = true;
 
 fn _parse_number(n_raw: &str) -> String {
     if n_raw.contains('.') {
@@ -24,9 +24,11 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         match t {
             Token::ReservedKeyword(k) => match k {
                 "print" => {
+                    // eprintln!("\nParsing an expression in print..");
                     let expr = match parse_expression(lexer, depth) {
                         Ok(mut expr) => {
                             let expr_type = expr.get_type();
+                            // eprintln!("expr_type: {}", expr_type);
                             match expr_type.as_str() {
                                 "Unary" => {
                                     let eval_expr = match evaluate(&expr) {
@@ -61,10 +63,13 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     );
                                 }
                                 "ReservedKeyword" => {
+                                    eprintln!("RK expr: {}", expr.to_string());
+
                                     let after_print = lexer.peek();
-                                    if after_print.is_some()
+                                    let is_some = after_print.is_some();
+                                    if is_some
                                         && !matches!(
-                                            after_print.unwrap().0,
+                                            after_print.as_ref().unwrap().0,
                                             Token::Character(';')
                                                 | Token::CharacterDouble('!', '=')
                                                 | Token::CharacterDouble('=', '=')
@@ -76,8 +81,40 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         return Err(ExitCode::from(70));
                                     }
 
+                                    if is_some
+                                        && matches!(
+                                            after_print.as_ref().unwrap().0,
+                                            Token::CharacterDouble('!', '=')
+                                                | Token::CharacterDouble('=', '=')
+                                        )
+                                    {
+                                        // eprintln!("expr: {}", expr.to_string());
+                                        let new_expr = parse_equality(lexer, depth);
+                                        // eprintln!("new_expr: {:?}", new_expr);
+                                        if let Ok(new_expr) = new_expr {
+                                            expr = new_expr;
+                                        } else {
+                                            if CATCH_ERROR {
+                                                eprintln!("returning error in primary");
+                                            };
+                                            return Err(ExitCode::from(70));
+                                        }
+                                    }
+
+                                    // eprintln!("expr: {}", expr.to_string());
+
+                                    let eval_expr = match evaluate(&expr) {
+                                        Res::RuntimeError(_) => {
+                                            if CATCH_ERROR {
+                                                eprintln!("returning error in primary");
+                                            };
+                                            return Err(ExitCode::from(70));
+                                        }
+                                        result => result,
+                                    };
+
                                     return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &expr.to_string(),
+                                        "print".to_string() + &eval_expr.to_string(),
                                     ));
                                 }
                                 "Binary" => {
@@ -154,7 +191,10 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                         };
                     }
                 }
-                _ => Ok(Expr::ReservedKeyword(k.to_string())),
+                _ => {
+                    // eprintln!("ReservedKeyword is '{}'", k);
+                    Ok(Expr::ReservedKeyword(k.to_string()))
+                }
             },
             Token::Number((_, n)) => Ok(Expr::Number(n)),
             Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
@@ -257,9 +297,17 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             return Err(err);
         }
     };
-    // eprintln!("result expr type: {}", result.get_type());
 
-    if result.get_type() == "ReservedKeyword" {
+    // eprintln!("\nin factor...");
+    // eprintln!("result: {}\n", result.to_string());
+
+    if result.get_type() == "ReservedKeyword"
+        && lexer.peek().is_some()
+        && !matches!(
+            lexer.peek().unwrap().0,
+            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
+        )
+    {
         return Ok(result);
     }
 
@@ -300,7 +348,16 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         }
     };
 
-    if result.get_type() == "ReservedKeyword" {
+    // eprintln!("\nin term...");
+    // eprintln!("result: {}\n", result.to_string());
+
+    if result.get_type() == "ReservedKeyword"
+        && lexer.peek().is_some()
+        && !matches!(
+            lexer.peek().unwrap().0,
+            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
+        )
+    {
         return Ok(result);
     }
 
@@ -346,7 +403,17 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> 
         }
     };
 
-    if result.get_type() == "ReservedKeyword" {
+    // eprintln!("\nin comparisson...");
+    // eprintln!("result: {}\n", result.to_string());
+
+    if result.get_type() == "ReservedKeyword"
+        && lexer.peek().is_some()
+        && !matches!(
+            lexer.peek().unwrap().0,
+            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
+        )
+    {
+        // eprintln!("here");
         return Ok(result);
     }
 
@@ -409,7 +476,13 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         }
     };
 
-    if result.get_type() == "ReservedKeyword" {
+    if result.get_type() == "ReservedKeyword"
+        && lexer.peek().is_some()
+        && !matches!(
+            lexer.peek().unwrap().0,
+            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
+        )
+    {
         return Ok(result);
     }
 
