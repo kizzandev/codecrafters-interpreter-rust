@@ -84,7 +84,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     };
 
                                     return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &expr.to_string(),
+                                        "print".to_string() + &eval_expr.to_string(),
                                     ));
                                 }
                                 _ => {
