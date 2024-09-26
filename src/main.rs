@@ -28,7 +28,8 @@ fn call_parse(file_contents: &str, option: ParseOption) -> ExitCode {
 
             ExitCode::SUCCESS
         }
-        _ => ExitCode::from(65),
+        Err(err) => return err,
+        // _ => ExitCode::from(65),
     }
 }
 
