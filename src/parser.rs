@@ -34,7 +34,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary");
+                                                eprintln!("returning error in primary: print Unary");
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -76,7 +76,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         )
                                     {
                                         if CATCH_ERROR {
-                                            eprintln!("returning error in primary");
+                                            eprintln!("returning error in primary: print RK");
                                         };
                                         return Err(ExitCode::from(70));
                                     }
@@ -95,7 +95,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                             expr = new_expr;
                                         } else {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary");
+                                                eprintln!("returning error in primary: print RK");
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -106,7 +106,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary");
+                                                eprintln!("returning error in primary: print RK");
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -121,7 +121,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary");
+                                                eprintln!("returning error in primary: print Binary");
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -136,7 +136,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary");
+                                                eprintln!("returning error in primary: print Comparison");
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -169,7 +169,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                         _ => {
                             return {
                                 if CATCH_ERROR {
-                                    eprintln!("returning error in primary");
+                                    eprintln!("returning error in primary: print");
                                 };
                                 Err(ExitCode::from(65))
                             }
@@ -185,7 +185,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                         eprintln!("Error: Expected ';' after 'print'.");
                         return {
                             if CATCH_ERROR {
-                                eprintln!("returning error in primary");
+                                eprintln!("returning error in primary: print");
                             };
                             Err(ExitCode::from(65))
                         };
@@ -208,7 +208,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                     _ => {
                         return {
                             if CATCH_ERROR {
-                                eprintln!("returning error in primary");
+                                eprintln!("returning error in primary: group");
                             };
                             Err(ExitCode::from(65))
                         }
@@ -301,7 +301,7 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     // eprintln!("\nin factor...");
     // eprintln!("result: {}\n", result.to_string());
 
-    if result.get_type() == "ReservedKeyword"
+    /*if result.get_type() == "ReservedKeyword"
         && lexer.peek().is_some()
         && !matches!(
             lexer.peek().unwrap().0,
@@ -309,7 +309,7 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         )
     {
         return Ok(result);
-    }
+    }*/
 
     while let Some((t, _)) = lexer.peek() {
         match t {
@@ -351,7 +351,7 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
     // eprintln!("\nin term...");
     // eprintln!("result: {}\n", result.to_string());
 
-    if result.get_type() == "ReservedKeyword"
+    /*if result.get_type() == "ReservedKeyword"
         && lexer.peek().is_some()
         && !matches!(
             lexer.peek().unwrap().0,
@@ -359,7 +359,7 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         )
     {
         return Ok(result);
-    }
+    }*/
 
     while let Some((t, _)) = lexer.peek() {
         match t {
@@ -383,6 +383,7 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                 };
 
                 if evaluate(&result).is_runtime_error() {
+                    eprintln!("Runtime error: {}", result.to_string());
                     return Err(ExitCode::from(70));
                 }
             }
@@ -406,7 +407,7 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> 
     // eprintln!("\nin comparisson...");
     // eprintln!("result: {}\n", result.to_string());
 
-    if result.get_type() == "ReservedKeyword"
+    /*if result.get_type() == "ReservedKeyword"
         && lexer.peek().is_some()
         && !matches!(
             lexer.peek().unwrap().0,
@@ -415,7 +416,7 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> 
     {
         // eprintln!("here");
         return Ok(result);
-    }
+    }*/
 
     while let Some((t, _)) = lexer.peek() {
         match t {
@@ -476,7 +477,7 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         }
     };
 
-    if result.get_type() == "ReservedKeyword"
+    /*if result.get_type() == "ReservedKeyword"
         && lexer.peek().is_some()
         && !matches!(
             lexer.peek().unwrap().0,
@@ -484,7 +485,7 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
         )
     {
         return Ok(result);
-    }
+    }*/
 
     while let Some((t, _)) = lexer.peek() {
         match t {
