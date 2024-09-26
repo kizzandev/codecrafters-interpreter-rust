@@ -34,7 +34,9 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary: print Unary");
+                                                eprintln!(
+                                                    "returning error in primary: print Unary"
+                                                );
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -121,7 +123,9 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary: print Binary");
+                                                eprintln!(
+                                                    "returning error in primary: print Binary"
+                                                );
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -136,7 +140,9 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     let eval_expr = match evaluate(&expr) {
                                         Res::RuntimeError(_) => {
                                             if CATCH_ERROR {
-                                                eprintln!("returning error in primary: print Comparison");
+                                                eprintln!(
+                                                    "returning error in primary: print Comparison"
+                                                );
                                             };
                                             return Err(ExitCode::from(70));
                                         }
@@ -577,8 +583,11 @@ pub fn parse(
                         .clone();
                     // eprintln!("{}", new_expr.to_string());
                     results.push(new_expr);
+                } else {
+                    eprintln!("Not printing: {}", expr.to_string());
                 };
             }
+            Ok(expr) if option == ParseOption::PARSE => results.push(expr),
             Err(err) => {
                 // eprintln!("Got an exit code");
                 // eprintln!("Error: {:#?}", err.clone());
