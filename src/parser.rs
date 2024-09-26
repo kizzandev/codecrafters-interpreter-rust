@@ -439,10 +439,6 @@ pub fn parse(
                         .clone();
                     // eprintln!("{}", new_expr.to_string());
                     results.push(new_expr);
-                } else if expr.to_string() == ";" {
-                    continue;
-                } else {
-                    eprintln!("Not print: {}", expr.to_string());
                 };
             }
             Err(err) => {
