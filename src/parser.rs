@@ -4,7 +4,7 @@ use crate::ast::Expr;
 use crate::evaluator::{evaluate, Res};
 use crate::lexer::{Lexer, Token};
 
-const CATCH_ERROR: bool = false;
+const CATCH_ERROR: bool = !false;
 
 fn _parse_number(n_raw: &str) -> String {
     if n_raw.contains('.') {
@@ -63,8 +63,16 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                 "ReservedKeyword" => {
                                     let after_print = lexer.peek();
                                     if after_print.is_some()
-                                        && after_print.unwrap().0 != Token::Character(';')
+                                        && !matches!(
+                                            after_print.unwrap().0,
+                                            Token::Character(';')
+                                                | Token::CharacterDouble('!', '=')
+                                                | Token::CharacterDouble('=', '=')
+                                        )
                                     {
+                                        if CATCH_ERROR {
+                                            eprintln!("returning error in primary");
+                                        };
                                         return Err(ExitCode::from(70));
                                     }
 
