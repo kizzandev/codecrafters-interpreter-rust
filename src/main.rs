@@ -28,7 +28,16 @@ fn call_parse(file_contents: &str, option: ParseOption) -> ExitCode {
 
             ExitCode::SUCCESS
         }
-        Err(err) => return err,
+        Err(err) => {
+            // print if vector is some and has values
+            if err.1.is_some() {
+                for e in err.1.unwrap() {
+                    println!("{}", e.to_string());
+                }
+            }
+
+            return err.0;
+        }
         // _ => ExitCode::from(65),
     }
 }

@@ -53,7 +53,12 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     }
                                 }
                                 "StringLiteral" => {
-                                    expr.change_value("print".to_string() + &expr.to_string())
+                                    return Ok(
+                                        // expr.change_value("print".to_string() + &expr.to_string())
+                                        Expr::ReservedKeyword(
+                                            "print".to_string() + &expr.to_string(),
+                                        ),
+                                    );
                                 }
                                 _ => {
                                     eprintln!("\nexpr type: {}", expr.get_type());
@@ -188,6 +193,12 @@ fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             return Err(err);
         }
     };
+    // eprintln!("result expr type: {}", result.get_type());
+
+    if result.get_type() == "ReservedKeyword" {
+        return Ok(result);
+    }
+
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::Character(c) if matches!(c, '*' | '/') => {
@@ -224,6 +235,11 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             return Err(err);
         }
     };
+
+    if result.get_type() == "ReservedKeyword" {
+        return Ok(result);
+    }
+
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::Character(c) if matches!(c, '+' | '-') => {
@@ -265,6 +281,11 @@ fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> 
             return Err(err);
         }
     };
+
+    if result.get_type() == "ReservedKeyword" {
+        return Ok(result);
+    }
+
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::Character(c) if matches!(c, '<' | '>') => {
@@ -323,6 +344,11 @@ fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             return Err(err);
         }
     };
+
+    if result.get_type() == "ReservedKeyword" {
+        return Ok(result);
+    }
+
     while let Some((t, _)) = lexer.peek() {
         match t {
             Token::CharacterDouble(c1, c2) if matches!(c1, '=' | '!') && c2 == '=' => {
@@ -382,18 +408,16 @@ pub enum ParseOption {
     _TOKENIZE,
 }
 
-pub fn parse(file_contents: &str, option: ParseOption) -> Result<Vec<Expr>, ExitCode> {
+pub fn parse(
+    file_contents: &str,
+    option: ParseOption,
+) -> Result<Vec<Expr>, (ExitCode, Option<Vec<Expr>>)> {
     let mut lexer = Lexer::new(&file_contents);
 
     let mut results: Vec<Expr> = Vec::new();
 
     loop {
         match recursive_parse(&mut lexer, 0) {
-            Err(err) => {
-                // eprintln!("Got an exit code");
-                // eprintln!("Error: {:#?}", err.clone());
-                return Err(err);
-            }
             Ok(expr) if expr.to_string() == "EOF" => break,
             /*Ok(expr) if expr.to_string() == ";" => {
                 eprintln!(";");
@@ -415,13 +439,20 @@ pub fn parse(file_contents: &str, option: ParseOption) -> Result<Vec<Expr>, Exit
                         .clone();
                     // eprintln!("{}", new_expr.to_string());
                     results.push(new_expr);
+                } else if expr.to_string() == ";" {
+                    continue;
                 } else {
                     eprintln!("Not print: {}", expr.to_string());
                 };
             }
+            Err(err) => {
+                // eprintln!("Got an exit code");
+                // eprintln!("Error: {:#?}", err.clone());
+                return Err((err, Some(results)));
+            }
             _ => {
                 eprintln!("Got here");
-                return Err(ExitCode::from(65));
+                return Err((ExitCode::from(65), Some(results)));
             }
         }
     }
