@@ -102,6 +102,13 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                     ));
                                 }
                                 "Number" => {
+                                    let n_str = &expr.to_string();
+                                    if n_str.ends_with(".0") {
+                                        return Ok(Expr::ReservedKeyword(
+                                            "print".to_string() + &n_str[..n_str.len() - 2],
+                                        ));
+                                    }
+
                                     return Ok(Expr::ReservedKeyword(
                                         "print".to_string() + &expr.to_string(),
                                     ));
