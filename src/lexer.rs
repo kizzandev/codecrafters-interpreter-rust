@@ -227,3 +227,12 @@ impl<'input> Lexer<'input> {
         self.clone().next()
     }
 }
+
+impl<'input> Lexer<'input> {
+    pub fn get_line(&self) -> usize {
+        self.line
+    }
+    pub fn get_index(&self) -> usize {
+        self.idx
+    }
+}
