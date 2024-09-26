@@ -101,6 +101,11 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         "print".to_string() + &eval_expr.to_string(),
                                     ));
                                 }
+                                "Number" => {
+                                    return Ok(Expr::ReservedKeyword(
+                                        "print".to_string() + &expr.to_string(),
+                                    ));
+                                }
                                 _ => {
                                     eprintln!("\nexpr type: {}", expr.get_type());
                                     eprintln!("expr_value: {}", expr.to_string());
