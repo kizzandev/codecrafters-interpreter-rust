@@ -38,7 +38,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         }
                                         result => result,
                                     };
-                                    eprintln!("eval_expr: {}", eval_expr.to_string());
+                                    // eprintln!("eval_expr: {}", eval_expr.to_string());
 
                                     match eval_expr.to_string().as_str() {
                                         boolean if matches!(boolean, "true" | "false") => {
@@ -62,11 +62,24 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                 }
                                 "ReservedKeyword" => {
                                     let after_print = lexer.peek();
-                                    if after_print.is_some() && after_print.unwrap().0 != Token::Character(';') {
+                                    if after_print.is_some()
+                                        && after_print.unwrap().0 != Token::Character(';')
+                                    {
                                         return Err(ExitCode::from(70));
                                     }
+
+                                    let eval_expr = match evaluate(&expr) {
+                                        Res::RuntimeError(_) => {
+                                            if CATCH_ERROR {
+                                                eprintln!("returning error in primary");
+                                            };
+                                            return Err(ExitCode::from(70));
+                                        }
+                                        result => result,
+                                    };
+
                                     return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &expr.to_string(),
+                                        "print".to_string() + &eval_expr.to_string(),
                                     ));
                                 }
                                 "Binary" => {
