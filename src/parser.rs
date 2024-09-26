@@ -272,6 +272,8 @@ fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                 if evaluate(&result).is_runtime_error() {
                     return Err(ExitCode::from(70));
                 }
+
+                eprintln!("Not an eval error");
             }
             _ => break,
         }
