@@ -23,7 +23,7 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
             Token::ReservedKeyword(k) => match k {
                 "print" => {
                     let expr = match parse_expression(lexer, depth) {
-                        Ok(expr) => {
+                        Ok(mut expr) => {
                             let expr_type = expr.get_type();
                             match expr_type.as_str() {
                                 "Unary" => {
@@ -41,20 +41,13 @@ fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
                                         }
                                     }
                                 }
-                                _ => expr,
+                                _ => {
+                                    // eprintln!("expr type: {}", expr.get_type());
+                                    // eprintln!("Needs update at printing");
+                                    // expr
+                                    expr.change_value("print".to_string() + &expr.to_string())
+                                }
                             }
-                            // eprintln!("expr type: {}", expr.get_type());
-                            // let eval_expr = evaluate(&expr);
-                            // eprintln!("eval_expr: {}", eval_expr.to_string());
-                            // let new_str = "print".to_string() + &expr.to_string();
-                            // let eval_expr_str = eval_expr.to_string();
-                            // eprintln!("PRINT: {}", eval_expr_str);
-                            // let new_expr = expr.change_value(eval_expr_str).clone();
-                            // let new_str = "print".to_string() + &new_expr.to_string();
-                            // let temp = expr.change_value(new_str).clone();
-                            // eprintln!("new expr: {}", temp.to_string());
-                            // temp
-                            // expr
                         }
                         _ => return Err(ExitCode::from(65)),
                     };
