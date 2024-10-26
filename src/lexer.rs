@@ -4,6 +4,7 @@ pub struct Lexer<'input> {
     contents: &'input str,                   // contents of the file
     char_indices: Vec<(usize, char)>,        // each char and its index
     idx: usize,                              // current index
+    col: usize,                              // current column
     line: usize,                             // current line
     is_comment: bool,                        // whether the current token is a comment
     reserved_keywords: HashSet<&'input str>, // set of reserved keywords
@@ -31,6 +32,7 @@ impl<'input> Lexer<'input> {
                 .char_indices() // get the char indicies
                 .collect::<Vec<_>>(), // convert the char indicies to a vector
             idx: 0,
+            col: 0,
             line: 1,
             is_comment: false,
             reserved_keywords,
@@ -83,10 +85,12 @@ impl<'input> Iterator for Lexer<'input> {
         // Get the current char and increment the index
         let (c_idx, c) = self.char_indices[self.idx];
         self.idx += 1;
+        self.col += 1;
 
         // Newline
         if c == '\n' {
             self.line += 1;
+            self.col = 0;
             if self.is_comment {
                 self.is_comment = false; // reset the comment flag
             }
@@ -124,6 +128,7 @@ impl<'input> Iterator for Lexer<'input> {
                     return Some((Token::Identifier(id), self.line));
                 };
                 self.idx += 1;
+                self.col += 1;
             }
         }
 
@@ -214,6 +219,7 @@ impl<'input> Clone for Lexer<'input> {
             contents: self.contents,
             char_indices: self.char_indices.clone(),
             idx: self.idx,
+            col: self.col,
             line: self.line,
             is_comment: self.is_comment,
             reserved_keywords: RESERVED_KEYWORDS.iter().map(|k| *k).collect(),
@@ -232,7 +238,7 @@ impl<'input> Lexer<'input> {
     pub fn get_line(&self) -> usize {
         self.line
     }
-    pub fn get_index(&self) -> usize {
-        self.idx
+    pub fn get_column(&self) -> usize {
+        self.col
     }
 }

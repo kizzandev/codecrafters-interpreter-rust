@@ -82,10 +82,11 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
-    fn run(&mut self, stmts: &[Stmt]) -> Result<String> {
+    // fn run(&mut self, stmts: &[Stmt]) -> Result<String> {
+    fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
 
-        for stmt in stmts {
+        /*for stmt in stmts {
             match stmt {
                 Stmt::Expression(expr) => {
                     self.eval_expr(expr)?;
@@ -111,6 +112,41 @@ impl Interpreter {
 
                     self.globals.insert(name.clone(), value);
                 }
+
+                Stmt::Err(error) => {
+                    eprintln!("Error: {error}");
+                }
+            }
+        }*/
+
+        match stmt {
+            Stmt::Expression(expr) => {
+                self.eval_expr(&expr)?;
+            }
+
+            Stmt::Print(expr) => {
+                let literal = self.eval_expr(&expr)?;
+                let literal = print_literal(&literal);
+
+                println!("{}", literal);
+
+                stdout += literal.as_ref();
+
+                stdout += "\n";
+            }
+
+            Stmt::Var(name, initializer) => {
+                let value = match initializer {
+                    Some(expr) => self.eval_expr(&expr)?,
+
+                    None => LiteralExpr::NIL,
+                };
+
+                self.globals.insert(name.clone(), value);
+            }
+
+            Stmt::Err(error) => {
+                eprintln!("Error: {error}");
             }
         }
 
@@ -254,21 +290,63 @@ impl Interpreter {
             },
         }
     }
+
+    fn eval_stmt(&mut self, stmt: &Stmt) -> Result<LiteralExpr> {
+        match stmt {
+            Stmt::Expression(expr) => self.eval_expr(expr),
+            _ => Err(format!("{:?} is not an expression!", stmt)),
+        }
+    }
 }
 
-pub fn eval(expr: &Expr) -> Result<String> {
+pub enum Res {
+    Ok(String),
+    RuntimeError(String),
+}
+
+impl Res {
+    pub fn is_runtime_error(&self) -> bool {
+        match self {
+            Res::RuntimeError(_) => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_error(&self) -> String {
+        match self {
+            Res::RuntimeError(s) => s.to_string(),
+            _ => "".to_string(),
+        }
+    }
+
+    pub fn to_string(&self) -> String {
+        match self {
+            Res::Ok(value) => value.to_string(),
+            Res::RuntimeError(s) => s.to_string(),
+        }
+    }
+}
+
+pub fn eval(stmt: &Stmt) -> Res {
+    let res = Interpreter {
+        globals: HashMap::new(),
+    }
+    .eval_stmt(stmt)
+    .map(|literal_expr| print_literal(&literal_expr));
+
+    match res {
+        Ok(value) => Res::Ok(value),
+        _ => Res::RuntimeError(format!("{:?} is not an expression!", stmt)),
+    }
+
+    // map(|literal_expr| print_literal(&literal_expr))
+}
+
+pub fn run(stmt: Stmt) -> Result<String> {
     Interpreter {
         globals: HashMap::new(),
     }
-    .eval_expr(expr)
-    .map(|literal_expr| print_literal(&literal_expr))
-}
-
-pub fn run(stmts: &[Stmt]) -> Result<String> {
-    Interpreter {
-        globals: HashMap::new(),
-    }
-    .run(stmts)
+    .run(stmt)
 }
 
 fn print_literal(literal_expr: &LiteralExpr) -> String {

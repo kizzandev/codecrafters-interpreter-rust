@@ -54,8 +54,11 @@ pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Expr<'a>),
     Var(String, Option<Expr<'a>>),
+
+    Err(String),
 }
 
+#[derive(Clone)]
 pub struct Parser<'a> {
     lexer: Lexer<'a>,
 }
@@ -67,36 +70,33 @@ impl<'a> Parser<'a> {
         }
     }
 
-    pub fn parse(&'a mut self) -> Result<Vec<Stmt>> {
-        let mut stms = Vec::new();
-
-        while let Some(token) = self.lexer.next() {
-            match token.0 {
-                _ => stms.push(self.statement(token.clone())?),
-            }
-        }
-
-        Ok(stms)
+    fn consume_token(&mut self) {
+        // eprintln!("CONSUMED: {:?}", self.lexer.next());
+        self.lexer.next();
     }
 
-    fn statement(&mut self, token: (Token, usize)) -> Result<Stmt> {
+    fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
+        // eprintln!("STATEMENT CALLED: {:?}", token.0);
         match token.0 {
-            Token::ReservedKeyword("var") => {
-                self.lexer.next();
-                self.var_declaration()
-            }
-            Token::ReservedKeyword("print") => {
-                self.lexer.next();
-                self.print_statement()
-            }
-            _ => self.expression_statement(), // _ => Ok(Stmt::Expression(Expr::Literal(LiteralExpr::NIL))),
+            Token::ReservedKeyword("var") => self.var_declaration(),
+            Token::ReservedKeyword("print") => self.print_statement(),
+            _ => self.expression_statement(),
         }
     }
 
-    fn var_declaration(&mut self) -> Result<Stmt> {
+    fn var_declaration(&mut self) -> Result<Stmt<'a>> {
+        // eprintln!("VAR TOKEN: {:?}", self.consume_token());
+
         let name = match self.lexer.next() {
             Some((Token::Identifier(i), _)) => i.to_string(),
-            _ => return Err("expected identifier".to_string()),
+            other => {
+                return Err(format!(
+                    "expected identifier at {} : {}\nGot {:#?}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column(),
+                    other,
+                ));
+            }
         };
 
         let initializer = match self.lexer.peek() {
@@ -109,20 +109,34 @@ impl<'a> Parser<'a> {
 
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Var(name, initializer)),
-            _ => Err("expected semicolon".to_string()),
+            other => Err(format!(
+                "expected semicolon at {} : {}\nGot {:#?}",
+                self.lexer.get_line(),
+                self.lexer.get_column(),
+                other,
+            )),
         }
     }
 
-    fn print_statement(&mut self) -> Result<Stmt> {
+    fn print_statement(&mut self) -> Result<Stmt<'a>> {
+        // eprintln!("PRINT TOKEN: {:?}", self.consume_token());
+
         let expr = self.expression()?;
+        self.consume_token();
+        // eprintln!("PRINT EXPR: {:?}", expr);
 
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
-            _ => Err("expected semicolon".to_string()),
+            other => Err(format!(
+                "expected semicolon at {} : {}\nGot {:#?}",
+                self.lexer.get_line(),
+                self.lexer.get_column(),
+                other,
+            )),
         }
     }
 
-    fn expression_statement(&mut self) -> Result<Stmt> {
+    fn expression_statement(&mut self) -> Result<Stmt<'a>> {
         let expr = self.expression()?;
 
         if let Some((Token::Character(';'), _)) = self.lexer.peek() {
@@ -133,11 +147,11 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn expression(&mut self) -> Result<Expr> {
+    fn expression(&mut self) -> Result<Expr<'a>> {
         self.equality()
     }
 
-    fn equality(&mut self) -> Result<Expr> {
+    fn equality(&mut self) -> Result<Expr<'a>> {
         let mut result = self.comparisson()?;
 
         while let Some((t, _)) = self.lexer.peek() {
@@ -153,7 +167,7 @@ impl<'a> Parser<'a> {
         Ok(result)
     }
 
-    fn comparisson(&mut self) -> Result<Expr> {
+    fn comparisson(&mut self) -> Result<Expr<'a>> {
         let mut result = self.term()?;
 
         while let Some((t, _)) = self.lexer.peek() {
@@ -169,7 +183,7 @@ impl<'a> Parser<'a> {
         Ok(result)
     }
 
-    fn term(&mut self) -> Result<Expr> {
+    fn term(&mut self) -> Result<Expr<'a>> {
         let mut result = self.factor()?;
 
         while let Some((t, _)) = self.lexer.peek() {
@@ -185,7 +199,7 @@ impl<'a> Parser<'a> {
         Ok(result)
     }
 
-    fn factor(&mut self) -> Result<Expr> {
+    fn factor(&mut self) -> Result<Expr<'a>> {
         let mut result = self.unary()?;
 
         while let Some((t, _)) = self.lexer.peek() {
@@ -201,7 +215,7 @@ impl<'a> Parser<'a> {
         Ok(result)
     }
 
-    fn unary(&mut self) -> Result<Expr> {
+    fn unary(&mut self) -> Result<Expr<'a>> {
         if let Some((t, _)) = self.lexer.peek() {
             match t {
                 Token::Character(c) if matches!(c, '+' | '-') => {
@@ -216,7 +230,7 @@ impl<'a> Parser<'a> {
         }
     }
 
-    fn primary(&mut self) -> Result<Expr> {
+    fn primary(&mut self) -> Result<Expr<'a>> {
         if let Some((t, _)) = self.lexer.peek() {
             match t {
                 Token::Number(n) => {
@@ -257,10 +271,29 @@ impl<'a> Parser<'a> {
                     }
                 }
                 Token::Identifier(i) => Ok(Expr::Variable(i.to_string())),
-                _ => Err("Error in primary: no match".to_string()),
+
+                // Token::Character(';') => Ok(Expr::Literal(LiteralExpr::NIL)),
+                other => Err(format!(
+                    "Error in primary: no match at {} : {}\nGot {:#?}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column(),
+                    other,
+                )),
             }
         } else {
             Err("Error in primary: no token found".to_string())
         }
+    }
+}
+
+impl<'a> Iterator for Parser<'a> {
+    type Item = Result<Stmt<'a>>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        let token = self.lexer.next()?;
+
+        let stmt = self.statement(token);
+
+        Some(stmt)
     }
 }
