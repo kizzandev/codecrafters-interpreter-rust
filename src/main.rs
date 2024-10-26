@@ -122,11 +122,13 @@ fn main() -> ExitCode {
                     Ok(s) => {
                         // let stdout = run(s);
                         // let s: &parser::Stmt<'static> = &s.borrow();
-                        let int = interpreter.run(s);
-                        match int {
-                            Err(e) => eprintln!("{e}"),
-                            Ok(stdout) => println!("{stdout}"),
-                        };
+                        let _int = interpreter.run(s);
+
+                        // match int {
+                        //     Err(e) => eprintln!("{e}"),
+                        //     // Ok(stdout) => println!("{stdout}"),
+                        //     _ => pass
+                        // };
 
                         // let stdout = interpreter
                         //     .run(stmt.unwrap_or("Bad Statement.".to_string()))
