@@ -32,6 +32,15 @@ pub enum Expr<'a> {
     Variable(String),
 }
 
+impl<'a> Expr<'a> {
+    pub fn get_variable(self) -> String {
+        match self {
+            Expr::Variable(name) => name.to_string(),
+            _ => "".to_string(),
+        }
+    }
+}
+
 pub fn print_expr(expr: &Expr) -> String {
     match expr {
         Expr::Literal(l) => l.to_string(),

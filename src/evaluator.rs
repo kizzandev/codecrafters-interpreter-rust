@@ -82,8 +82,14 @@ pub struct Interpreter {
 }
 
 impl Interpreter {
+    pub fn new() -> Self {
+        Self {
+            globals: HashMap::new(),
+        }
+    }
+
     // fn run(&mut self, stmts: &[Stmt]) -> Result<String> {
-    fn run(&mut self, stmt: Stmt) -> Result<String> {
+    pub fn run(&mut self, stmt: Stmt<'_>) -> Result<String> {
         let mut stdout = String::new();
 
         /*for stmt in stmts {
@@ -119,13 +125,24 @@ impl Interpreter {
             }
         }*/
 
+        // eprintln!("RUNNING: {:?}", stmt);
         match stmt {
             Stmt::Expression(expr) => {
                 self.eval_expr(&expr)?;
             }
 
             Stmt::Print(expr) => {
-                let literal = self.eval_expr(&expr)?;
+                // eprintln!("EXPR: {:?}", expr);
+
+                // eprintln!("GLOBALS: {:?}", self.globals);
+
+                let literal = self
+                    .globals
+                    .get(&expr.get_variable())
+                    .expect("Variable not found");
+
+                // let literal = self.eval_expr(&expr)?;
+                // let literal = print_literal(&literal);
                 let literal = print_literal(&literal);
 
                 println!("{}", literal);
@@ -143,6 +160,7 @@ impl Interpreter {
                 };
 
                 self.globals.insert(name.clone(), value);
+                // eprintln!("GLOBALS: {:?}", self.globals);
             }
 
             Stmt::Err(error) => {
@@ -342,12 +360,12 @@ pub fn eval(stmt: &Stmt) -> Res {
     // map(|literal_expr| print_literal(&literal_expr))
 }
 
-pub fn run(stmt: Stmt) -> Result<String> {
-    Interpreter {
-        globals: HashMap::new(),
-    }
-    .run(stmt)
-}
+// pub fn run(stmt: Stmt) -> Result<String> {
+//     Interpreter {
+//         globals: HashMap::new(),
+//     }
+//     .run(stmt)
+// }
 
 fn print_literal(literal_expr: &LiteralExpr) -> String {
     match literal_expr {

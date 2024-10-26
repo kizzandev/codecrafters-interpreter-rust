@@ -1,3 +1,4 @@
+use std::borrow::Borrow;
 use std::env;
 use std::process::ExitCode;
 
@@ -15,7 +16,7 @@ use crate::evaluator::eval;
 // use crate::parser::{print_expr, Parser};
 use crate::parser::Parser;
 use crate::tokenizer::tokenize;
-use evaluator::run;
+use evaluator::Interpreter;
 use interpreter_starter_rust::read_file;
 // use parser::Stmt;
 
@@ -110,6 +111,7 @@ fn main() -> ExitCode {
         }
         "run" => {
             let mut parser = Parser::new(&file_contents);
+            let mut interpreter = Interpreter::new();
 
             while let Some(stmt) = parser.next() {
                 match stmt {
@@ -118,11 +120,22 @@ fn main() -> ExitCode {
                         return ExitCode::from(65);
                     }
                     Ok(s) => {
-                        let stdout = run(s);
-                        match stdout {
-                            Ok(s) => println!("{s}"),
-                            Err(err) => eprintln!("{err}"),
-                        }
+                        // let stdout = run(s);
+                        // let s: &parser::Stmt<'static> = &s.borrow();
+                        let int = interpreter.run(s);
+                        match int {
+                            Err(e) => eprintln!("{e}"),
+                            Ok(stdout) => println!("{stdout}"),
+                        };
+
+                        // let stdout = interpreter
+                        //     .run(stmt.unwrap_or("Bad Statement.".to_string()))
+                        //     .unwrap_or("Something went wrong.".to_string());
+                        // match stdout {
+                        //     Ok(s) => println!("{s}"),
+                        //     Err(err) => eprintln!("{err}"),
+                        // }
+                        // println!("{stdout}");
                     }
                 }
             }
