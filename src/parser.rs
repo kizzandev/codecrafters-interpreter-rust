@@ -1,612 +1,266 @@
-use std::process::ExitCode;
-
-use crate::ast::Expr;
-use crate::evaluator::{evaluate, Res};
 use crate::lexer::{Lexer, Token};
 
-const CATCH_ERROR: bool = true;
+pub type Result<T> = std::result::Result<T, String>;
 
-fn _parse_number(n_raw: &str) -> String {
-    if n_raw.contains('.') {
-        let n_raw = n_raw.trim_end_matches('0').trim_end_matches('.');
-        if n_raw.contains('.') {
-            n_raw.to_string()
+#[derive(Debug, Clone)]
+pub enum LiteralExpr {
+    Number(f64),
+    StringLiteral(String),
+    TRUE,
+    FALSE,
+    NIL,
+}
+
+impl std::fmt::Display for LiteralExpr {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            LiteralExpr::Number(n) => write!(f, "{n}"),
+            LiteralExpr::StringLiteral(s) => write!(f, "{s}"),
+            LiteralExpr::TRUE => write!(f, "true"),
+            LiteralExpr::FALSE => write!(f, "false"),
+            LiteralExpr::NIL => write!(f, "nil"),
+        }
+    }
+}
+
+#[derive(Debug)]
+pub enum Expr<'a> {
+    Literal(LiteralExpr),
+    Unary(Token<'a>, Box<Expr<'a>>),
+    Binary(Box<Expr<'a>>, Token<'a>, Box<Expr<'a>>),
+    Grouping(Box<Expr<'a>>),
+    Variable(String),
+}
+
+pub fn print_expr(expr: &Expr) -> String {
+    match expr {
+        Expr::Literal(l) => l.to_string(),
+        Expr::Unary(op, right) => format!("({op} {})", print_expr(right.as_ref())),
+        Expr::Binary(left, op, right) => {
+            format!(
+                "({} {} {})",
+                op,
+                print_expr(left.as_ref()),
+                print_expr(right.as_ref())
+            )
+        }
+        Expr::Grouping(expr) => format!("(group {})", print_expr(expr.as_ref())),
+        Expr::Variable(name) => format!("(var {})", name),
+    }
+}
+
+#[derive(Debug)]
+pub enum Stmt<'a> {
+    Expression(Expr<'a>),
+    Print(Expr<'a>),
+    Var(String, Option<Expr<'a>>),
+}
+
+pub struct Parser<'a> {
+    lexer: Lexer<'a>,
+}
+
+impl<'a> Parser<'a> {
+    pub fn new(file_contents: &'a str) -> Self {
+        Self {
+            lexer: Lexer::<'a>::new(file_contents),
+        }
+    }
+
+    pub fn parse(&'a mut self) -> Result<Vec<Stmt>> {
+        let mut stms = Vec::new();
+
+        while let Some(token) = self.lexer.next() {
+            match token.0 {
+                _ => stms.push(self.statement(token.clone())?),
+            }
+        }
+
+        Ok(stms)
+    }
+
+    fn statement(&mut self, token: (Token, usize)) -> Result<Stmt> {
+        match token.0 {
+            Token::ReservedKeyword("var") => {
+                self.lexer.next();
+                self.var_declaration()
+            }
+            Token::ReservedKeyword("print") => {
+                self.lexer.next();
+                self.print_statement()
+            }
+            _ => self.expression_statement(), // _ => Ok(Stmt::Expression(Expr::Literal(LiteralExpr::NIL))),
+        }
+    }
+
+    fn var_declaration(&mut self) -> Result<Stmt> {
+        let name = match self.lexer.next() {
+            Some((Token::Identifier(i), _)) => i.to_string(),
+            _ => return Err("expected identifier".to_string()),
+        };
+
+        let initializer = match self.lexer.peek() {
+            Some((Token::Character('='), _)) => {
+                self.lexer.next();
+                Some(self.expression()?)
+            }
+            _ => None,
+        };
+
+        match self.lexer.next() {
+            Some((Token::Character(';'), _)) => Ok(Stmt::Var(name, initializer)),
+            _ => Err("expected semicolon".to_string()),
+        }
+    }
+
+    fn print_statement(&mut self) -> Result<Stmt> {
+        let expr = self.expression()?;
+
+        match self.lexer.next() {
+            Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
+            _ => Err("expected semicolon".to_string()),
+        }
+    }
+
+    fn expression_statement(&mut self) -> Result<Stmt> {
+        let expr = self.expression()?;
+
+        if let Some((Token::Character(';'), _)) = self.lexer.peek() {
+            self.lexer.next();
+            Ok(Stmt::Expression(expr))
         } else {
-            format!("{n_raw}.0")
+            Err("expected semicolon".to_string())
         }
-    } else {
-        format!("{n_raw}.0")
     }
-}
 
-fn parse_primary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    if let Some((t, _)) = lexer.next() {
-        match t {
-            Token::ReservedKeyword(k) => match k {
-                "print" => {
-                    // eprintln!("\nParsing an expression in print..");
-                    let expr = match parse_expression(lexer, depth) {
-                        Ok(mut expr) => {
-                            let expr_type = expr.get_type();
-                            // eprintln!("expr_type: {}", expr_type);
-                            match expr_type.as_str() {
-                                "Unary" => {
-                                    let eval_expr = match evaluate(&expr) {
-                                        Res::RuntimeError(_) => {
-                                            if CATCH_ERROR {
-                                                eprintln!(
-                                                    "returning error in primary: print Unary"
-                                                );
-                                            };
-                                            return Err(ExitCode::from(70));
-                                        }
-                                        result => result,
-                                    };
-                                    // eprintln!("eval_expr: {}", eval_expr.to_string());
+    fn expression(&mut self) -> Result<Expr> {
+        self.equality()
+    }
 
-                                    match eval_expr.to_string().as_str() {
-                                        boolean if matches!(boolean, "true" | "false") => {
-                                            Expr::ReservedKeyword(
-                                                "print".to_string() + &boolean.to_string(),
-                                            )
-                                        }
-                                        _ => {
-                                            eprintln!("eval_expr: {}", eval_expr.to_string());
-                                            expr
-                                        }
-                                    }
-                                }
-                                "StringLiteral" => {
-                                    return Ok(
-                                        // expr.change_value("print".to_string() + &expr.to_string())
-                                        Expr::ReservedKeyword(
-                                            "print".to_string() + &expr.to_string(),
-                                        ),
-                                    );
-                                }
-                                "ReservedKeyword" => {
-                                    eprintln!("RK expr: {}", expr.to_string());
+    fn equality(&mut self) -> Result<Expr> {
+        let mut result = self.comparisson()?;
 
-                                    let after_print = lexer.peek();
-                                    let is_some = after_print.is_some();
-                                    if is_some
-                                        && !matches!(
-                                            after_print.as_ref().unwrap().0,
-                                            Token::Character(';')
-                                                | Token::CharacterDouble('!', '=')
-                                                | Token::CharacterDouble('=', '=')
-                                        )
-                                    {
-                                        if CATCH_ERROR {
-                                            eprintln!("returning error in primary: print RK");
-                                        };
-                                        return Err(ExitCode::from(70));
-                                    }
+        while let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Character('=') | Token::Character('!') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.comparisson()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
+                _ => break,
+            }
+        }
+        Ok(result)
+    }
 
-                                    if is_some
-                                        && matches!(
-                                            after_print.as_ref().unwrap().0,
-                                            Token::CharacterDouble('!', '=')
-                                                | Token::CharacterDouble('=', '=')
-                                        )
-                                    {
-                                        // eprintln!("expr: {}", expr.to_string());
-                                        let new_expr = parse_equality(lexer, depth);
-                                        // eprintln!("new_expr: {:?}", new_expr);
-                                        if let Ok(new_expr) = new_expr {
-                                            expr = new_expr;
-                                        } else {
-                                            if CATCH_ERROR {
-                                                eprintln!("returning error in primary: print RK");
-                                            };
-                                            return Err(ExitCode::from(70));
-                                        }
-                                    }
+    fn comparisson(&mut self) -> Result<Expr> {
+        let mut result = self.term()?;
 
-                                    // eprintln!("expr: {}", expr.to_string());
+        while let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Character(c) if matches!(c, '<' | '>') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.term()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
+                _ => break,
+            }
+        }
+        Ok(result)
+    }
 
-                                    let eval_expr = match evaluate(&expr) {
-                                        Res::RuntimeError(_) => {
-                                            if CATCH_ERROR {
-                                                eprintln!("returning error in primary: print RK");
-                                            };
-                                            return Err(ExitCode::from(70));
-                                        }
-                                        result => result,
-                                    };
+    fn term(&mut self) -> Result<Expr> {
+        let mut result = self.factor()?;
 
-                                    return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &eval_expr.to_string(),
-                                    ));
-                                }
-                                "Binary" => {
-                                    let eval_expr = match evaluate(&expr) {
-                                        Res::RuntimeError(_) => {
-                                            if CATCH_ERROR {
-                                                eprintln!(
-                                                    "returning error in primary: print Binary"
-                                                );
-                                            };
-                                            return Err(ExitCode::from(70));
-                                        }
-                                        result => result,
-                                    };
+        while let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Character(c) if matches!(c, '+' | '-') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.factor()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
+                _ => break,
+            }
+        }
+        Ok(result)
+    }
 
-                                    return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &eval_expr.to_string(),
-                                    ));
-                                }
-                                "Comparison" => {
-                                    let eval_expr = match evaluate(&expr) {
-                                        Res::RuntimeError(_) => {
-                                            if CATCH_ERROR {
-                                                eprintln!(
-                                                    "returning error in primary: print Comparison"
-                                                );
-                                            };
-                                            return Err(ExitCode::from(70));
-                                        }
-                                        result => result,
-                                    };
-                                    return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &eval_expr.to_string(),
-                                    ));
-                                }
-                                "Number" => {
-                                    let n_str = &expr.to_string();
-                                    if n_str.ends_with(".0") {
-                                        return Ok(Expr::ReservedKeyword(
-                                            "print".to_string() + &n_str[..n_str.len() - 2],
-                                        ));
-                                    }
+    fn factor(&mut self) -> Result<Expr> {
+        let mut result = self.unary()?;
 
-                                    return Ok(Expr::ReservedKeyword(
-                                        "print".to_string() + &expr.to_string(),
-                                    ));
-                                }
-                                _ => {
-                                    eprintln!("\nexpr type: {}", expr.get_type());
-                                    eprintln!("expr_value: {}", expr.to_string());
-                                    eprintln!("Needs update at printing");
-                                    expr.change_value("print".to_string() + &expr.to_string())
-                                }
-                            }
+        while let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Character(c) if matches!(c, '*' | '/') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.unary()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
+                _ => break,
+            }
+        }
+        Ok(result)
+    }
+
+    fn unary(&mut self) -> Result<Expr> {
+        if let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Character(c) if matches!(c, '+' | '-') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.unary()?;
+                    Ok(Expr::Unary(op, Box::new(right)))
+                }
+                _ => self.primary(),
+            }
+        } else {
+            self.primary()
+        }
+    }
+
+    fn primary(&mut self) -> Result<Expr> {
+        if let Some((t, _)) = self.lexer.peek() {
+            match t {
+                Token::Number(n) => {
+                    self.lexer.next();
+                    Ok(Expr::Literal(LiteralExpr::Number(match n.0.parse() {
+                        Ok(n) => n,
+                        Err(_) => {
+                            eprintln!("Error: Invalid number.");
+                            panic!("Invalid number.");
                         }
-                        _ => {
-                            return {
-                                if CATCH_ERROR {
-                                    eprintln!("returning error in primary: print");
-                                };
-                                Err(ExitCode::from(65))
-                            }
-                        }
-                    };
-                    if let Some((Token::Character(';'), _)) = lexer.next() {
-                        let expr = expr.clone();
+                    })))
+                }
+                Token::StringLiteral(s) => {
+                    self.lexer.next();
+                    Ok(Expr::Literal(LiteralExpr::StringLiteral(s.to_string())))
+                }
+                Token::ReservedKeyword("true") => {
+                    self.lexer.next();
+                    Ok(Expr::Literal(LiteralExpr::TRUE))
+                }
+                Token::ReservedKeyword("false") => {
+                    self.lexer.next();
+                    Ok(Expr::Literal(LiteralExpr::FALSE))
+                }
+                Token::ReservedKeyword("nil") => {
+                    self.lexer.next();
+                    Ok(Expr::Literal(LiteralExpr::NIL))
+                }
+                Token::Character('(') => {
+                    self.lexer.next();
+                    let expr = self.expression()?;
+                    if let Some((Token::Character(')'), _)) = self.lexer.peek() {
+                        self.lexer.next();
                         Ok(expr)
-                        /*Ok(Expr::ReservedKeyword(
-                            "print".to_string() + &expr.to_string(),
-                        ))*/
                     } else {
-                        eprintln!("Error: Expected ';' after 'print'.");
-                        return {
-                            if CATCH_ERROR {
-                                eprintln!("returning error in primary: print");
-                            };
-                            Err(ExitCode::from(65))
-                        };
+                        eprintln!("Error: Unmatched parentheses.");
+                        Err("Error: Unmatched parentheses.".to_string())
                     }
                 }
-                _ => {
-                    // eprintln!("ReservedKeyword is '{}'", k);
-                    Ok(Expr::ReservedKeyword(k.to_string()))
-                }
-            },
-            Token::Number((_, n)) => Ok(Expr::Number(n)),
-            Token::StringLiteral(s) => Ok(Expr::StringLiteral(s.to_string())),
-            Token::UnterminatedStringLiteral => {
-                eprintln!("Error: Unterminated string literal.");
-                Err(ExitCode::from(65))
+                Token::Identifier(i) => Ok(Expr::Variable(i.to_string())),
+                _ => Err("Error in primary: no match".to_string()),
             }
-            Token::Character('(') => {
-                let expr = match parse_expression(lexer, depth + 1) {
-                    Ok(expr) => expr,
-                    _ => {
-                        return {
-                            if CATCH_ERROR {
-                                eprintln!("returning error in primary: group");
-                            };
-                            Err(ExitCode::from(65))
-                        }
-                    }
-                };
-                if let Some((Token::Character(')'), _)) = lexer.next() {
-                    // Ok(format!("(group {expr})"))
-                    Ok(Expr::Grouping(Box::new(expr)))
-                } else {
-                    eprintln!("Error: Unmatched parentheses.");
-                    Err(ExitCode::from(65))
-                }
-            }
-            Token::Character(';') => Ok(Expr::Character(';')),
-            Token::CharacterDouble(first, second) => Ok(Expr::CharacterDouble(first, second)),
-            _ => {
-                eprintln!(
-                    "Error: Unexpected token |{}| at {}:{}.",
-                    t,
-                    lexer.get_line(),
-                    lexer.get_index()
-                );
-                eprintln!("Token is: {}", t);
-                Err(ExitCode::from(65))
-            }
-        }
-    } else {
-        // eprintln!("Error: Unexpected end of input.");
-        // eprintln!("The end?");
-        // Err(ExitCode::from(65))
-        Ok(Expr::EOF)
-    }
-}
-
-fn parse_unary(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    if let Some((t, _)) = lexer.peek() {
-        match t {
-            Token::Character('!') | Token::Character('-') => {
-                let op = lexer.next().unwrap().0;
-                let operand = match parse_unary(lexer, depth) {
-                    Ok(operand) => operand,
-                    _ => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in unary");
-                        };
-                        return Err(ExitCode::from(65));
-                    }
-                };
-                Ok(Expr::Unary {
-                    op: op.to_string().chars().next().unwrap(),
-                    right: Box::new(operand),
-                })
-            }
-            /*Token::Character('!') => {
-                lexer.next();
-                let operand = match parse_unary(lexer, depth) {
-                    Ok(operand) => operand,
-                    _ => return Err(ExitCode::from(65)),
-                };
-                Ok(format!("(! {operand})"))
-            }
-            Token::Character('-') => {
-                lexer.next();
-                let operand = match parse_unary(lexer, depth) {
-                    Ok(operand) => operand,
-                    _ => return Err(ExitCode::from(65)),
-                };
-                Ok(format!("(- {operand})"))
-            }*/
-            _ => parse_primary(lexer, depth),
-        }
-    } else {
-        // eprintln!("Error: Unexpected end of input.");
-        // Err(ExitCode::from(65))
-        parse_primary(lexer, depth)
-    }
-}
-
-fn parse_factor(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    let mut result = match parse_unary(lexer, depth) {
-        Ok(s) => s,
-        Err(err) => {
-            if CATCH_ERROR {
-                eprintln!("returning error in factor");
-            };
-            return Err(err);
-        }
-    };
-
-    // eprintln!("\nin factor...");
-    // eprintln!("result: {}\n", result.to_string());
-
-    /*if result.get_type() == "ReservedKeyword"
-        && lexer.peek().is_some()
-        && !matches!(
-            lexer.peek().unwrap().0,
-            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
-        )
-    {
-        return Ok(result);
-    }*/
-
-    while let Some((t, _)) = lexer.peek() {
-        match t {
-            Token::Character(c) if matches!(c, '*' | '/') => {
-                let op = lexer.next().unwrap().0;
-                let right = match parse_unary(lexer, depth) {
-                    Ok(s) => s,
-                    Err(err) => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in factor");
-                        };
-                        return Err(err);
-                    }
-                };
-                // result = format!("({op} {result} {right})");
-                result = Expr::Binary {
-                    left: Box::new(result),
-                    op: op.to_string().chars().next().unwrap(),
-                    right: Box::new(right),
-                }
-            }
-            _ => break,
+        } else {
+            Err("Error in primary: no token found".to_string())
         }
     }
-    Ok(result)
-}
-
-fn parse_term(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    let mut result = match parse_factor(lexer, depth) {
-        Ok(s) => s,
-        Err(err) => {
-            if CATCH_ERROR {
-                eprintln!("returning error in term");
-            };
-            return Err(err);
-        }
-    };
-
-    // eprintln!("\nin term...");
-    // eprintln!("result: {}\n", result.to_string());
-
-    /*if result.get_type() == "ReservedKeyword"
-        && lexer.peek().is_some()
-        && !matches!(
-            lexer.peek().unwrap().0,
-            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
-        )
-    {
-        return Ok(result);
-    }*/
-
-    while let Some((t, _)) = lexer.peek() {
-        match t {
-            Token::Character(c) if matches!(c, '+' | '-') => {
-                let op = lexer.next().unwrap().0;
-                let right = match parse_factor(lexer, depth) {
-                    Ok(s) => s,
-                    Err(err) => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in term");
-                        }
-                        return Err(err);
-                    }
-                };
-                // result = format!("({op} {result} {right})");
-
-                result = Expr::Binary {
-                    left: Box::new(result),
-                    op: op.to_string().chars().next().unwrap(),
-                    right: Box::new(right),
-                };
-
-                if evaluate(&result).is_runtime_error() {
-                    eprintln!("Runtime error: {}", result.to_string());
-                    return Err(ExitCode::from(70));
-                }
-            }
-            _ => break,
-        }
-    }
-    Ok(result)
-}
-
-fn parse_comparisson(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    let mut result = match parse_term(lexer, depth) {
-        Ok(s) => s,
-        Err(err) => {
-            if CATCH_ERROR {
-                eprintln!("returning error in comparisson");
-            }
-            return Err(err);
-        }
-    };
-
-    // eprintln!("\nin comparisson...");
-    // eprintln!("result: {}\n", result.to_string());
-
-    /*if result.get_type() == "ReservedKeyword"
-        && lexer.peek().is_some()
-        && !matches!(
-            lexer.peek().unwrap().0,
-            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
-        )
-    {
-        // eprintln!("here");
-        return Ok(result);
-    }*/
-
-    while let Some((t, _)) = lexer.peek() {
-        match t {
-            Token::Character(c) if matches!(c, '<' | '>') => {
-                let op = lexer.next().unwrap().0;
-                let right = match parse_term(lexer, depth) {
-                    Ok(s) => s,
-                    Err(err) => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in comparisson");
-                        }
-                        return Err(err);
-                    }
-                };
-                // result = format!("({op} {result} {right})");
-                result = Expr::Binary {
-                    left: Box::new(result),
-                    op: op.to_string().chars().next().unwrap(),
-                    right: Box::new(right),
-                }
-            }
-            Token::CharacterDouble(c1, c2) if matches!(c1, '<' | '>') && c2 == '=' => {
-                let op = lexer.next().unwrap().0;
-                let right = match parse_term(lexer, depth) {
-                    Ok(s) => s,
-                    Err(err) => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in comparisson");
-                        }
-                        return Err(err);
-                    }
-                };
-                // result = format!("({op} {result} {right})");
-                result = Expr::Comparison {
-                    left: Box::new(result),
-                    op: match op.to_string().chars().next().unwrap() {
-                        '<' => ('<', '='),
-                        '>' => ('>', '='),
-                        _ => unreachable!(),
-                    },
-                    right: Box::new(right),
-                }
-            }
-            _ => break,
-        }
-    }
-    Ok(result)
-}
-
-fn parse_equality(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    let mut result = match parse_comparisson(lexer, depth) {
-        Ok(s) => s,
-        Err(err) => {
-            if CATCH_ERROR {
-                eprintln!("returning error in equality");
-            }
-            return Err(err);
-        }
-    };
-
-    /*if result.get_type() == "ReservedKeyword"
-        && lexer.peek().is_some()
-        && !matches!(
-            lexer.peek().unwrap().0,
-            Token::CharacterDouble('=', '=') | Token::CharacterDouble('!', '=')
-        )
-    {
-        return Ok(result);
-    }*/
-
-    while let Some((t, _)) = lexer.peek() {
-        match t {
-            Token::CharacterDouble(c1, c2) if matches!(c1, '=' | '!') && c2 == '=' => {
-                let op = lexer.next().unwrap().0;
-                let right = match parse_comparisson(lexer, depth) {
-                    Ok(s) => s,
-                    Err(err) => {
-                        if CATCH_ERROR {
-                            eprintln!("returning error in equality");
-                        }
-                        return Err(err);
-                    }
-                };
-                // result = format!("({op} {result} {right})");
-                result = Expr::Comparison {
-                    left: Box::new(result),
-                    op: match op.to_string().chars().next().unwrap() {
-                        '=' => ('=', '='),
-                        '!' => ('!', '='),
-                        _ => unreachable!(),
-                    },
-                    right: Box::new(right),
-                }
-            }
-            _ => break,
-        }
-    }
-    Ok(result)
-}
-
-fn parse_expression(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    // let result = match parse_equality(lexer, depth) {
-    //     Ok(s) => s,
-    //     Err(err) => return Err(err),
-    // };
-    // Ok(result)
-    match parse_equality(lexer, depth) {
-        Ok(s) => Ok(s),
-        Err(err) => {
-            if CATCH_ERROR {
-                eprintln!("returning error in expression");
-            }
-            return Err(err);
-        }
-    }
-}
-
-fn recursive_parse(lexer: &mut Lexer, depth: usize) -> Result<Expr, ExitCode> {
-    parse_expression(lexer, depth)
-}
-
-#[derive(PartialEq)]
-pub enum ParseOption {
-    RUN,
-    EVALUATE,
-    PARSE,
-    _TOKENIZE,
-}
-
-pub fn parse(
-    file_contents: &str,
-    option: ParseOption,
-) -> Result<Vec<Expr>, (ExitCode, Option<Vec<Expr>>)> {
-    let mut lexer = Lexer::new(&file_contents);
-
-    let mut results: Vec<Expr> = Vec::new();
-
-    loop {
-        match recursive_parse(&mut lexer, 0) {
-            Ok(expr) if expr.to_string() == "EOF" => break,
-            /*Ok(expr) if expr.to_string() == ";" => {
-                eprintln!(";");
-                continue;
-            }*/
-            Ok(expr) if option == ParseOption::EVALUATE => {
-                if expr.to_string() == ";" {
-                    continue;
-                };
-                results.push(expr)
-            }
-            Ok(mut expr) if option == ParseOption::RUN => {
-                // eprintln!("EXPR: {}", expr.to_string());
-                if expr.to_string().starts_with("print") {
-                    // let new_expr =
-                    //     Expr::ReservedKeyword(expr.to_string().split_at(5).1.to_string());
-                    let new_expr = expr
-                        .change_value(expr.to_string().split_at(5).1.to_string())
-                        .clone();
-                    // eprintln!("{}", new_expr.to_string());
-                    results.push(new_expr);
-                } else {
-                    eprintln!("Not printing: {}", expr.to_string());
-                };
-            }
-            Ok(expr) if option == ParseOption::PARSE => results.push(expr),
-            Err(err) => {
-                // eprintln!("Got an exit code");
-                // eprintln!("Error: {:#?}", err.clone());
-                return Err((err, Some(results)));
-            }
-            _ => {
-                eprintln!("Got here");
-                return Err((ExitCode::from(65), Some(results)));
-            }
-        }
-    }
-
-    Ok(results)
-
-    /*match recursive_parse(&mut lexer, 0) {
-        Ok(s) => {
-            // println!("{}", s.to_string());
-            Ok(s)
-        }
-        _ => Err(ExitCode::from(65)),
-    }*/
 }

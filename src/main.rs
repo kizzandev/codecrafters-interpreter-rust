@@ -8,13 +8,15 @@ mod lexer;
 mod parser;
 mod tokenizer;
 
-use crate::evaluator::evaluate;
+// use crate::evaluator::evaluate;
+use crate::evaluator::eval;
 // use crate::interpreter::interpret;
-use crate::parser::{parse, ParseOption};
+// use crate::parser::{parse, ParseOption};
+use crate::parser::{print_expr, Parser};
 use crate::tokenizer::tokenize;
 use interpreter_starter_rust::read_file;
 
-fn call_parse(file_contents: &str, option: ParseOption) -> ExitCode {
+/*fn call_parse(file_contents: &str, option: ParseOption) -> ExitCode {
     match parse(&file_contents, option) {
         Ok(expr) => {
             for e in &expr {
@@ -40,7 +42,7 @@ fn call_parse(file_contents: &str, option: ParseOption) -> ExitCode {
         }
         // _ => ExitCode::from(65),
     }
-}
+}*/
 
 fn main() -> ExitCode {
     let args: Vec<String> = env::args().collect();
@@ -56,7 +58,50 @@ fn main() -> ExitCode {
 
     return match command.as_str() {
         "tokenize" => tokenize(&file_contents),
-        "parse" => match parse(&file_contents, ParseOption::PARSE) {
+        "parse" => {
+            Parser::new(&file_contents).parse();
+
+            ExitCode::SUCCESS
+        }
+        "evaluate" => {
+            let expr = Parser::new(&file_contents).parse();
+
+            match expr {
+                Ok(expr) => {
+                    for e in &expr {
+                        let eval = eval(e);
+                        if eval.is_runtime_error() {
+                            eprintln!("{}", eval.to_string());
+                            return ExitCode::from(70);
+                        }
+                        println!("{}", eval.to_string());
+                    }
+                    ExitCode::SUCCESS
+                }
+                _ => ExitCode::from(65),
+            }
+
+            ExitCode::SUCCESS
+        }
+        "run" => {
+            let expr = Parser::new(&file_contents).parse();
+            match expr {
+                Ok(expr) => {
+                    for e in &expr {
+                        let eval = evaluate(e);
+                        if eval.is_runtime_error() {
+                            eprintln!("{}", eval.to_string());
+                            return ExitCode::from(70);
+                        }
+                        println!("{}", eval.to_string());
+                    }
+                    ExitCode::SUCCESS
+                }
+                _ => ExitCode::from(65),
+            }
+        }
+
+        /*"parse" => match parse(&file_contents, ParseOption::PARSE) {
             Ok(expr) => {
                 println!("{}", expr[0].to_string());
                 ExitCode::SUCCESS
@@ -64,7 +109,7 @@ fn main() -> ExitCode {
             _ => ExitCode::from(65),
         },
         "evaluate" => call_parse(&file_contents, ParseOption::EVALUATE),
-        "run" => call_parse(&file_contents, ParseOption::RUN),
+        "run" => call_parse(&file_contents, ParseOption::RUN),*/
         // "evaluate" | "run" => match parse(&file_contents) {
         //     Ok(expr) => {
         //         for e in &expr {

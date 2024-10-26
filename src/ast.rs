@@ -24,6 +24,7 @@ pub enum Expr {
         right: Box<Expr>,
     },
     Grouping(Box<Expr>),
+    VarAssign(String, Box<Expr>),
 }
 
 fn parse_number(n: &f64) -> String {
@@ -64,6 +65,7 @@ impl Expr {
                 )
             }
             Expr::Grouping(expr) => format!("(group {})", expr.to_string()),
+            Expr::VarAssign(i, expr) => format!("({} = {})", i, expr.to_string()),
         }
     }
 
@@ -80,6 +82,7 @@ impl Expr {
             Expr::Binary { .. } => "Binary".to_string(),
             Expr::Comparison { .. } => "Comparison".to_string(),
             Expr::Grouping(_) => "Grouping".to_string(),
+            Expr::VarAssign(_, _) => "VarAssign".to_string(),
         }
     }
 

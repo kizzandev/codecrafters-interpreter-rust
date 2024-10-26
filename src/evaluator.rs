@@ -1,6 +1,13 @@
-use crate::ast::Expr;
+// use crate::ast::Expr;
 
-pub enum Res {
+use crate::lexer::Token;
+use crate::parser::{Expr, LiteralExpr, Stmt};
+
+use std::collections::HashMap;
+
+type Result<T> = std::result::Result<T, String>;
+
+/*pub enum Res {
     Number(f64),
     StringLiteral(String),
     Bool(String),
@@ -68,8 +75,213 @@ fn operand_must_be_number() -> Res {
 fn operands_must_be_numbers() -> Res {
     Res::RuntimeError("Operands must be numbers.".to_string())
 }
+*/
 
-pub fn evaluate(expr: &Expr) -> Res {
+pub struct Interpreter {
+    globals: HashMap<String, LiteralExpr>,
+}
+
+impl Interpreter {
+    fn run(&mut self, stmts: &[Stmt]) -> Result<String> {
+        let mut stdout = String::new();
+
+        for stmt in stmts {
+            match stmt {
+                Stmt::Expression(expr) => {
+                    self.eval_expr(expr)?;
+                }
+
+                Stmt::Print(expr) => {
+                    let literal = self.eval_expr(expr)?;
+                    let literal = print_literal(&literal);
+
+                    println!("{}", literal);
+
+                    stdout += literal.as_ref();
+
+                    stdout += "\n";
+                }
+
+                Stmt::Var(name, initializer) => {
+                    let value = match initializer {
+                        Some(expr) => self.eval_expr(expr)?,
+
+                        None => LiteralExpr::NIL,
+                    };
+
+                    self.globals.insert(name.clone(), value);
+                }
+            }
+        }
+
+        Ok(stdout)
+    }
+
+    fn eval_expr(&mut self, expr: &Expr) -> Result<LiteralExpr> {
+        match expr {
+            Expr::Literal(literal_expr) => Ok((*literal_expr).clone()),
+
+            Expr::Grouping(inner) => self.eval_expr(inner.as_ref()),
+
+            Expr::Binary(left_expr, token_type, right_expr) => {
+                let left_literal = self.eval_expr(left_expr.as_ref())?;
+
+                let right_literal = self.eval_expr(right_expr.as_ref())?;
+
+                match (left_literal, token_type, right_literal) {
+                    // string concatenation
+                    (
+                        LiteralExpr::StringLiteral(l),
+                        Token::Character('+'),
+                        LiteralExpr::StringLiteral(r),
+                    ) => Ok(LiteralExpr::StringLiteral(l + r.as_str())),
+
+                    // math
+                    (LiteralExpr::Number(l), Token::Character('+'), LiteralExpr::Number(r)) => {
+                        Ok(LiteralExpr::Number(l + r))
+                    }
+
+                    (LiteralExpr::Number(l), Token::Character('-'), LiteralExpr::Number(r)) => {
+                        Ok(LiteralExpr::Number(l - r))
+                    }
+
+                    (LiteralExpr::Number(l), Token::Character('/'), LiteralExpr::Number(r)) => {
+                        Ok(LiteralExpr::Number(l / r))
+                    }
+
+                    (LiteralExpr::Number(l), Token::Character('*'), LiteralExpr::Number(r)) => {
+                        Ok(LiteralExpr::Number(l * r))
+                    }
+
+                    // relation
+                    (LiteralExpr::Number(l), Token::Character('<'), LiteralExpr::Number(r)) => {
+                        if l < r {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (
+                        LiteralExpr::Number(l),
+                        Token::CharacterDouble('<', '='),
+                        LiteralExpr::Number(r),
+                    ) => {
+                        if l <= r {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (LiteralExpr::Number(l), Token::Character('>'), LiteralExpr::Number(r)) => {
+                        if l > r {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (
+                        LiteralExpr::Number(l),
+                        Token::CharacterDouble('>', '='),
+                        LiteralExpr::Number(r),
+                    ) => {
+                        if l >= r {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    // equality
+                    (l, Token::CharacterDouble('=', '='), r) => {
+                        if l.to_string() == r.to_string() {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (l, Token::CharacterDouble('!', '='), r) => {
+                        if l.to_string() != r.to_string() {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (l, token_type, r) => Err(format!(
+                        "binary expression not supported: {:?} {} {:?}",
+                        l, token_type, r
+                    )),
+                }
+            }
+
+            Expr::Unary(token, right_expr) => match token {
+                Token::Character('-') => {
+                    let right_literal = self.eval_expr(right_expr)?;
+
+                    match right_literal {
+                        LiteralExpr::Number(v) => Ok(LiteralExpr::Number(-v)),
+
+                        _ => Err(format!(
+                            "{:?} is not possible in this context!",
+                            right_literal
+                        )),
+                    }
+                }
+
+                Token::Character('!') => {
+                    // "false" and "nil" are falsy, everything else is truthy
+
+                    let right_literal = self.eval_expr(right_expr)?;
+
+                    match right_literal {
+                        LiteralExpr::FALSE | LiteralExpr::NIL => Ok(LiteralExpr::TRUE),
+
+                        _ => Ok(LiteralExpr::FALSE),
+                    }
+                }
+
+                _ => Err(format!("{} is not possible in this context!", token)),
+            },
+
+            Expr::Variable(name) => match self.globals.get(name) {
+                Some(literal) => Ok(literal.clone()),
+
+                None => Err(format!("Undefined variable: {}", name)),
+            },
+        }
+    }
+}
+
+pub fn eval(expr: &Expr) -> Result<String> {
+    Interpreter {
+        globals: HashMap::new(),
+    }
+    .eval_expr(expr)
+    .map(|literal_expr| print_literal(&literal_expr))
+}
+
+pub fn run(stmts: &[Stmt]) -> Result<String> {
+    Interpreter {
+        globals: HashMap::new(),
+    }
+    .run(stmts)
+}
+
+fn print_literal(literal_expr: &LiteralExpr) -> String {
+    match literal_expr {
+        LiteralExpr::Number(v) => v.to_string(),
+        LiteralExpr::StringLiteral(s) => s.to_string(),
+        LiteralExpr::TRUE => "true".to_string(),
+        LiteralExpr::FALSE => "false".to_string(),
+        LiteralExpr::NIL => "nil".to_string(),
+    }
+}
+
+/*pub fn evaluate(expr: &Expr) -> Res {
     match expr {
         Expr::EOF => Res::StringLiteral("EOF".to_string()),
 
@@ -237,5 +449,10 @@ pub fn evaluate(expr: &Expr) -> Res {
             Res::StringLiteral(op.to_string())
         }
         Expr::Grouping(expr) => evaluate(expr),
+        Expr::VarAssign(name, right) => {
+            let right = evaluate(right);
+            Res::StringLiteral(format!("{} = {}", name, right.to_string()))
+        }
     }
 }
+*/

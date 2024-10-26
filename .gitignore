@@ -11,3 +11,6 @@ target/
 
 # Test
 test.rux
+
+# Old Stuff
+src/old-*.rs
