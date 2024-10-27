@@ -23,7 +23,7 @@ impl std::fmt::Display for LiteralExpr {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Expr<'a> {
     Literal(LiteralExpr),
     Unary(Token<'a>, Box<Expr<'a>>),
@@ -84,8 +84,10 @@ impl<'a> Parser<'a> {
         self.lexer.next();
     }
 
-    fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
+    // fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
+    fn statement(&mut self) -> Result<Stmt<'a>> {
         // eprintln!("STATEMENT CALLED: {:?}", token.0);
+        let token = self.lexer.peek().expect("No statement found");
         match token.0 {
             Token::ReservedKeyword("var") => self.var_declaration(),
             Token::ReservedKeyword("print") => self.print_statement(),
@@ -95,6 +97,8 @@ impl<'a> Parser<'a> {
 
     fn var_declaration(&mut self) -> Result<Stmt<'a>> {
         // eprintln!("VAR TOKEN: {:?}", self.consume_token());
+        // eprintln!("VAR DECL TOKEN: {:?}", self.lexer.next());
+        self.lexer.next();
 
         let name = match self.lexer.next() {
             Some((Token::Identifier(i), _)) => i.to_string(),
@@ -129,11 +133,12 @@ impl<'a> Parser<'a> {
 
     fn print_statement(&mut self) -> Result<Stmt<'a>> {
         // eprintln!("PRINT TOKEN: {:?}", self.consume_token());
+        self.consume_token();
 
         let expr = self.expression()?;
-        self.consume_token();
         // eprintln!("PRINT EXPR: {:?}", expr);
 
+        // eprintln!("PRINT: {:?}", self.lexer.peek());
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
             other => Err(format!(
@@ -148,11 +153,19 @@ impl<'a> Parser<'a> {
     fn expression_statement(&mut self) -> Result<Stmt<'a>> {
         let expr = self.expression()?;
 
-        if let Some((Token::Character(';'), _)) = self.lexer.peek() {
-            self.lexer.next();
-            Ok(Stmt::Expression(expr))
-        } else {
-            Err("expected semicolon".to_string())
+        // eprintln!("EXPR STATAMENT: {:?}", expr);
+
+        match self.lexer.peek() {
+            Some((Token::Character(';'), _)) => {
+                self.lexer.next();
+                Ok(Stmt::Expression(expr))
+            }
+            other => Err(format!(
+                "expected semicolon at {} : {}\nGot {:#?}",
+                self.lexer.get_line(),
+                self.lexer.get_column(),
+                other,
+            )),
         }
     }
 
@@ -162,6 +175,8 @@ impl<'a> Parser<'a> {
 
     fn equality(&mut self) -> Result<Expr<'a>> {
         let mut result = self.comparisson()?;
+        // eprintln!("EQUALITY: {:?}", result);
+        // eprintln!("EQUALITY PEEK: {:?}", self.lexer.peek());
 
         while let Some((t, _)) = self.lexer.peek() {
             match t {
@@ -170,9 +185,17 @@ impl<'a> Parser<'a> {
                     let right = self.comparisson()?;
                     result = Expr::Binary(Box::new(result), op, Box::new(right))
                 }
+                Token::CharacterDouble(a, b)
+                    if matches!(format!("{a}{b}").as_str(), "==" | "!=") =>
+                {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.comparisson()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
                 _ => break,
             }
         }
+        // eprintln!("EQUALITY END: {:?}", result);
         Ok(result)
     }
 
@@ -182,6 +205,13 @@ impl<'a> Parser<'a> {
         while let Some((t, _)) = self.lexer.peek() {
             match t {
                 Token::Character(c) if matches!(c, '<' | '>') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.term()?;
+                    result = Expr::Binary(Box::new(result), op, Box::new(right))
+                }
+                Token::CharacterDouble(a, b)
+                    if matches!(format!("{a}{b}").as_str(), ">=" | "<=") =>
+                {
                     let op = self.lexer.next().unwrap().0;
                     let right = self.term()?;
                     result = Expr::Binary(Box::new(result), op, Box::new(right))
@@ -232,6 +262,11 @@ impl<'a> Parser<'a> {
                     let right = self.unary()?;
                     Ok(Expr::Unary(op, Box::new(right)))
                 }
+                Token::Character(c) if matches!(c, '!') => {
+                    let op = self.lexer.next().unwrap().0;
+                    let right = self.unary()?;
+                    Ok(Expr::Unary(op, Box::new(right)))
+                }
                 _ => self.primary(),
             }
         } else {
@@ -240,6 +275,8 @@ impl<'a> Parser<'a> {
     }
 
     fn primary(&mut self) -> Result<Expr<'a>> {
+        // eprintln!("PRIMARY: {:?}", self.lexer.peek());
+
         if let Some((t, _)) = self.lexer.peek() {
             match t {
                 Token::Number(n) => {
@@ -279,9 +316,11 @@ impl<'a> Parser<'a> {
                         Err("Error: Unmatched parentheses.".to_string())
                     }
                 }
-                Token::Identifier(i) => Ok(Expr::Variable(i.to_string())),
+                Token::Identifier(i) => {
+                    self.lexer.next();
+                    Ok(Expr::Variable(i.to_string()))
+                }
 
-                // Token::Character(';') => Ok(Expr::Literal(LiteralExpr::NIL)),
                 other => Err(format!(
                     "Error in primary: no match at {} : {}\nGot {:#?}",
                     self.lexer.get_line(),
@@ -299,9 +338,10 @@ impl<'a> Iterator for Parser<'a> {
     type Item = Result<Stmt<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let token = self.lexer.next()?;
+        // let token = self.lexer.next()?;
+        // eprintln!("PARSER TOKEN: {:?}", token);
 
-        let stmt = self.statement(token);
+        let stmt = self.statement();
 
         Some(stmt)
     }

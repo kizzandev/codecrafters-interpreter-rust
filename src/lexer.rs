@@ -99,11 +99,13 @@ impl<'input> Iterator for Lexer<'input> {
 
         // Comment
         if self.is_comment {
+            self.col += 1;
             return self.next();
         }
 
         // Whitespace
         if c == ' ' || c == '\t' {
+            self.col += 1;
             return self.next();
         }
 
@@ -143,12 +145,14 @@ impl<'input> Iterator for Lexer<'input> {
                 let (c_next_idx, c_next) = self.char_indices[self.idx];
                 if c_next == '"' {
                     self.idx += 1;
+                    self.col += 1;
                     return Some((
                         Token::StringLiteral(&self.contents[c_idx + 1..c_next_idx]),
                         self.line,
                     ));
                 }
                 self.idx += 1;
+                self.col += 1;
             }
         }
 
@@ -156,8 +160,10 @@ impl<'input> Iterator for Lexer<'input> {
         if c.is_ascii_digit() {
             let mut has_dot = false;
             self.idx -= 1;
+            self.col -= 1;
             loop {
                 self.idx += 1;
+                self.col += 1;
                 let (n, n_raw) = if self.idx >= self.char_indices.len() {
                     // End of string
                     let raw = &self.contents[c_idx..]; // get rest of the string
@@ -166,6 +172,7 @@ impl<'input> Iterator for Lexer<'input> {
                     let (_, c) = self.char_indices[self.idx - 1];
                     if c != ' ' && c != '\t' && c != '\n' && !c.is_ascii_digit() {
                         self.idx -= 1;
+                        self.col -= 1;
                     }
                     (raw.parse::<f64>().unwrap(), raw.trim_end_matches("."))
                 } else {
@@ -194,6 +201,7 @@ impl<'input> Iterator for Lexer<'input> {
                 let (_, c_next) = self.char_indices[self.idx];
                 if c_next == *next {
                     self.idx += 1;
+                    self.col += 1;
                     // Check if its a comment
                     if *start == '/' && c_next == '/' {
                         self.is_comment = true;
