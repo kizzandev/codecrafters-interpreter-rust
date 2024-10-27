@@ -64,7 +64,7 @@ fn main() -> ExitCode {
             let mut interpreter = Interpreter::new();
 
             while let Some(stmt) = parser.next() {
-                // eprintln!("MAIN RUN STMT: {:?}", stmt);
+                //  eprintln!("MAIN RUN STMT: {:?}", stmt);
                 match stmt {
                     Err(err) => {
                         eprintln!("{err}");

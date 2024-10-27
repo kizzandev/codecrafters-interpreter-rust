@@ -86,9 +86,8 @@ impl<'a> Parser<'a> {
 
     // fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
     fn statement(&mut self) -> Result<Stmt<'a>> {
-        // eprintln!("STATEMENT CALLED: {:?}", token.0);
-        let token = self.lexer.peek().expect("No statement found");
-        match token.0 {
+        // eprintln!("STATEMENT CALLED: {:?}", self.lexer.peek().unwrap().0);
+        match self.lexer.peek().unwrap().0 {
             Token::ReservedKeyword("var") => self.var_declaration(),
             Token::ReservedKeyword("print") => self.print_statement(),
             _ => self.expression_statement(),
@@ -338,11 +337,10 @@ impl<'a> Iterator for Parser<'a> {
     type Item = Result<Stmt<'a>>;
 
     fn next(&mut self) -> Option<Self::Item> {
-        // let token = self.lexer.next()?;
-        // eprintln!("PARSER TOKEN: {:?}", token);
+        if self.lexer.peek().is_none() {
+            return None;
+        };
 
-        let stmt = self.statement();
-
-        Some(stmt)
+        Some(self.statement())
     }
 }
