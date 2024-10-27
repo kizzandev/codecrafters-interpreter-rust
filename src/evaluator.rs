@@ -27,12 +27,12 @@ impl Interpreter {
 
             Stmt::Print(expr) => {
                 let literal: &LiteralExpr = match expr {
-                    Expr::Variable(_) =>                          self
-                            .globals
-                            .get(&expr.clone().get_variable())
-                            .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
+                    Expr::Variable(_) => self
+                        .globals
+                        .get(&expr.clone().get_variable())
+                        .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
 
-                    other => &self.eval_expr(&other)?
+                    other => &(self.clone().eval_expr(&other)?),
                 };
 
                 let literal_str = print_literal(&literal);
