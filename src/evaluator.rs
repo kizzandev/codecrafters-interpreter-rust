@@ -32,7 +32,10 @@ impl Interpreter {
                         .get(&expr.clone().get_variable())
                         .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
 
-                    other => &(&self.clone().eval_expr(&other)?),
+                    other => {
+                        let mut e = self.clone();
+                        &e.eval_expr(&other)?
+                    }
                 };
 
                 let literal_str = print_literal(&literal);
