@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 type Result<T> = std::result::Result<T, String>;
 
+#[derive(Clone)]
 pub struct Interpreter {
     globals: HashMap<String, LiteralExpr>,
 }
@@ -16,7 +17,7 @@ impl Interpreter {
         }
     }
 
-    pub fn run(&mut self, stmt: Stmt<'_>) -> Result<String> {
+    pub fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
 
         match stmt {
@@ -26,23 +27,19 @@ impl Interpreter {
 
             Stmt::Print(expr) => {
                 let literal: &LiteralExpr = match expr {
-                    Expr::Variable(_) => self
-                        .globals
-                        .get(&expr.clone().get_variable())
-                        .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
+                    Expr::Variable(_) =>                          self
+                            .globals
+                            .get(&expr.clone().get_variable())
+                            .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
 
-                    other => {
-                        let e = &self.eval_expr(&other);
-                        &e.clone()
-                            .unwrap_or(LiteralExpr::StringLiteral("".to_string()))
-                    }
+                    other => &self.eval_expr(&other)?
                 };
 
-                let literal = print_literal(&literal);
+                let literal_str = print_literal(&literal);
 
-                println!("{}", literal);
+                println!("{}", literal_str);
 
-                stdout += literal.as_ref();
+                stdout += literal_str.as_ref();
 
                 stdout += "\n";
             }
