@@ -2,7 +2,7 @@ use crate::lexer::{Lexer, Token};
 
 pub type Result<T> = std::result::Result<T, String>;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum LiteralExpr {
     Number(f64),
     StringLiteral(String),
@@ -20,6 +20,12 @@ impl std::fmt::Display for LiteralExpr {
             LiteralExpr::FALSE => write!(f, "false"),
             LiteralExpr::NIL => write!(f, "nil"),
         }
+    }
+}
+
+impl LiteralExpr {
+    pub fn is_same_type(&self, other: &LiteralExpr) -> bool {
+        self == other
     }
 }
 

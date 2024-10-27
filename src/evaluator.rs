@@ -20,9 +20,14 @@ impl Interpreter {
     pub fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
 
+        eprintln!("INT RUNNING: {:?}", stmt);
+
         match stmt {
             Stmt::Expression(expr) => {
-                self.eval_expr(&expr)?;
+                let e = self.eval_expr(&expr);
+                if e.is_err() {
+                    return Err(e.err().unwrap());
+                }
             }
 
             Stmt::Print(expr) => {
@@ -69,7 +74,7 @@ impl Interpreter {
     }
 
     fn eval_expr(&mut self, expr: &Expr) -> Result<LiteralExpr> {
-        // eprintln!("EVAL EXPR: {:?}", expr);
+        eprintln!("EVAL EXPR: {:?}", expr);
         match expr {
             Expr::Literal(literal_expr) => Ok((*literal_expr).clone()),
 
@@ -79,6 +84,12 @@ impl Interpreter {
                 let left_literal = self.eval_expr(left_expr.as_ref())?;
 
                 let right_literal = self.eval_expr(right_expr.as_ref())?;
+
+                // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
+
+                if !left_literal.is_same_type(&right_literal) {
+                    return Err("Operands must be numbers.".to_string());
+                }
 
                 match (left_literal, token_type, right_literal) {
                     // string concatenation

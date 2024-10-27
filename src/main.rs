@@ -71,7 +71,10 @@ fn main() -> ExitCode {
                         return ExitCode::from(65);
                     }
                     Ok(s) => {
-                        let _int = interpreter.run(s);
+                        let res = interpreter.run(s);
+                        if res.is_err() {
+                            return ExitCode::from(70);
+                        }
                     }
                 }
             }
