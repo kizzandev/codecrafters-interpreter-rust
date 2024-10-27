@@ -73,6 +73,7 @@ fn main() -> ExitCode {
                     Ok(s) => {
                         let res = interpreter.run(s);
                         if res.is_err() {
+                            eprintln!("{:?}", res.err().unwrap());
                             return ExitCode::from(70);
                         }
                     }

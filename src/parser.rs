@@ -31,6 +31,8 @@ impl LiteralExpr {
                 | (LiteralExpr::StringLiteral(_), LiteralExpr::StringLiteral(_))
                 | (LiteralExpr::TRUE, LiteralExpr::TRUE)
                 | (LiteralExpr::FALSE, LiteralExpr::FALSE)
+                | (LiteralExpr::TRUE, LiteralExpr::FALSE)
+                | (LiteralExpr::FALSE, LiteralExpr::TRUE)
                 | (LiteralExpr::NIL, LiteralExpr::NIL)
         )
     }
