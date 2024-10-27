@@ -26,15 +26,18 @@ impl Interpreter {
             }
 
             Stmt::Print(expr) => {
-                let literal: &LiteralExpr = match expr {
-                    Expr::Variable(_) => self
-                        .globals
-                        .get(&expr.clone().get_variable())
-                        .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
+                let literal: LiteralExpr = match expr {
+                    Expr::Variable(_) => {
+                        let var = self
+                            .globals
+                            .get(&expr.clone().get_variable())
+                            .expect(format!("Variable not found. Got: {:?}", expr).as_str());
+                        var.clone()
+                    }
 
                     other => {
                         let mut e = self.clone();
-                        &e.eval_expr(&other)?
+                        e.eval_expr(&other)?
                     }
                 };
 
