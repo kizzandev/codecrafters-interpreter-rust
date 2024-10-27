@@ -31,7 +31,11 @@ impl Interpreter {
                         .get(&expr.clone().get_variable())
                         .expect(format!("Variable not found. Got: {:?}", expr).as_str()),
 
-                    other => &self.eval_expr(&other)?,
+                    other => {
+                        let e = &self.eval_expr(&other);
+                        &e.clone()
+                            .unwrap_or(LiteralExpr::StringLiteral("".to_string()))
+                    }
                 };
 
                 let literal = print_literal(&literal);
