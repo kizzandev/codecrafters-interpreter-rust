@@ -25,7 +25,14 @@ impl std::fmt::Display for LiteralExpr {
 
 impl LiteralExpr {
     pub fn is_same_type(&self, other: &LiteralExpr) -> bool {
-        self == other
+        matches!(
+            (self, other),
+            (LiteralExpr::Number(_), LiteralExpr::Number(_))
+                | (LiteralExpr::StringLiteral(_), LiteralExpr::StringLiteral(_))
+                | (LiteralExpr::TRUE, LiteralExpr::TRUE)
+                | (LiteralExpr::FALSE, LiteralExpr::FALSE)
+                | (LiteralExpr::NIL, LiteralExpr::NIL)
+        )
     }
 }
 

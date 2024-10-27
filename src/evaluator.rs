@@ -20,7 +20,7 @@ impl Interpreter {
     pub fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
 
-        eprintln!("INT RUNNING: {:?}", stmt);
+        // eprintln!("INT RUNNING: {:?}", stmt);
 
         match stmt {
             Stmt::Expression(expr) => {
@@ -74,7 +74,7 @@ impl Interpreter {
     }
 
     fn eval_expr(&mut self, expr: &Expr) -> Result<LiteralExpr> {
-        eprintln!("EVAL EXPR: {:?}", expr);
+        // eprintln!("EVAL EXPR: {:?}", expr);
         match expr {
             Expr::Literal(literal_expr) => Ok((*literal_expr).clone()),
 
