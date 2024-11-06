@@ -16,13 +16,27 @@ pub enum LiteralExpr {
 impl std::fmt::Display for LiteralExpr {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            LiteralExpr::Number(n) => write!(f, "{n}"),
+            LiteralExpr::Number(n) => write!(f, "{}", parse_number(n)),
             LiteralExpr::StringLiteral(s) => write!(f, "{s}"),
             LiteralExpr::TRUE => write!(f, "true"),
             LiteralExpr::FALSE => write!(f, "false"),
             LiteralExpr::NIL => write!(f, "nil"),
             LiteralExpr::EOF => write!(f, "EOF"),
         }
+    }
+}
+
+fn parse_number(n: &f64) -> String {
+    let n_raw = n.to_string();
+    if n_raw.contains('.') {
+        let n_raw = n_raw.trim_end_matches('0').trim_end_matches('.');
+        if n_raw.contains('.') {
+            n_raw.to_string()
+        } else {
+            format!("{n_raw}.0")
+        }
+    } else {
+        format!("{n_raw}.0")
     }
 }
 
