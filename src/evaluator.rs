@@ -87,7 +87,7 @@ impl Interpreter {
 
                 // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
 
-                if !left_literal.is_same_type_weird(&right_literal) {
+                if left_literal.is_same_type_weird(&right_literal) {
                     return Ok(LiteralExpr::FALSE);
                 }
 
