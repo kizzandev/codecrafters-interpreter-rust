@@ -160,10 +160,21 @@ impl<'a> Parser<'a> {
     // fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
     fn statement(&mut self) -> Result<Stmt<'a>> {
         // eprintln!("STATEMENT CALLED: {:?}", self.lexer.peek().unwrap().0);
-        match self.lexer.peek().unwrap().0 {
+        let res = match self.lexer.peek().unwrap().0 {
             Token::ReservedKeyword("var") => self.var_declaration(),
             Token::ReservedKeyword("print") => self.print_statement(),
             _ => self.expression_statement(),
+        };
+
+        eprintln!("STATEMENT RES: {:?}", res);
+        match self.lexer.next() {
+            Some((Token::Character(';'), _)) => res,
+            other => Err(format!(
+                "expected semicolon at the end of an statement, at {} : {}\nGot {:#?}",
+                self.lexer.get_line(),
+                self.lexer.get_column(),
+                other,
+            )),
         }
     }
 
@@ -184,7 +195,7 @@ impl<'a> Parser<'a> {
             }
         };
 
-        let initializer = match self.lexer.peek() {
+        let initializer: Option<Expr<'a>> = match self.lexer.peek() {
             Some((Token::Character('='), _)) => {
                 self.lexer.next();
                 Some(self.expression()?)
@@ -192,7 +203,8 @@ impl<'a> Parser<'a> {
             _ => None,
         };
 
-        match self.lexer.next() {
+        Ok(Stmt::Var(name, initializer))
+        /*match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Var(name, initializer)),
             other => Err(format!(
                 "expected semicolon after declaration at {} : {}\nGot {:#?}",
@@ -200,7 +212,7 @@ impl<'a> Parser<'a> {
                 self.lexer.get_column(),
                 other,
             )),
-        }
+        }*/
     }
 
     fn print_statement(&mut self) -> Result<Stmt<'a>> {
@@ -210,8 +222,9 @@ impl<'a> Parser<'a> {
         let expr = self.expression()?;
         // eprintln!("PRINT EXPR: {:?}", expr);
 
+        Ok(Stmt::Print(expr))
         // eprintln!("PRINT: {:?}", self.lexer.peek());
-        match self.lexer.next() {
+        /*match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
             other => Err(format!(
                 "expected semicolon after a print statement at {} : {}\nGot {:#?}",
@@ -219,7 +232,7 @@ impl<'a> Parser<'a> {
                 self.lexer.get_column(),
                 other,
             )),
-        }
+        }*/
     }
 
     fn expression_statement(&mut self) -> Result<Stmt<'a>> {
@@ -229,8 +242,27 @@ impl<'a> Parser<'a> {
 
         match self.lexer.peek() {
             Some((Token::Character(';'), _)) => {
-                self.lexer.next();
+                // self.lexer.next();
+                self.consume_token();
                 Ok(Stmt::Expression(expr))
+            }
+            Some((Token::Character('='), _)) => {
+                // self.lexer.next();
+                self.consume_token();
+                let initializer = Some(self.expression()?);
+                // eprintln!("THE CHANGED VARIABLE IS: {}", expr.clone().get_variable());
+                // eprintln!("THE NEW VALUE IS: {:?}", initializer.clone());
+                Ok(Stmt::Var(expr.get_variable(), initializer))
+                /*match self.lexer.peek() {
+                    Some((Token::Character(';'), _)) => {
+                    }
+                    other => Err(format!(
+                        "expected semicolon after declaration at {} : {}\nGot {:#?}",
+                        self.lexer.get_line(),
+                        self.lexer.get_column(),
+                        other,
+                    )),
+                }*/
             }
             other => Err(format!(
                 "expected semicolon after an expression at {} : {}\nGot {:#?}",
@@ -252,7 +284,7 @@ impl<'a> Parser<'a> {
 
         while let Some((t, _)) = self.lexer.peek() {
             match t {
-                Token::Character('=') | Token::Character('!') => {
+                Token::Character('!') => {
                     let op = self.lexer.next().unwrap().0;
                     let right = self.comparisson()?;
                     result = Expr::Binary(Box::new(result), op, Box::new(right))

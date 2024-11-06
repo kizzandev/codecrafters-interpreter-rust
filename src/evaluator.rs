@@ -35,28 +35,12 @@ impl Interpreter {
             Stmt::Print(expr) => {
                 let literal: LiteralExpr = match expr {
                     Expr::Variable(_) => {
-                        /*if self.globals.get(&expr.clone().get_variable()).is_none() {
-                            return Err(format!("Undefined variable '{}'", expr.get_variable()));
-                        }
-
-                        self.globals
-                            .get(&expr.clone().get_variable())
-                            .unwrap()
-                            .clone()*/
-
                         match self.globals.get(&expr.clone().get_variable()) {
                             None => {
                                 return Err(format!("Undefined variable '{}'.", expr.get_variable()))
                             }
                             Some(lit) => lit.clone(),
                         }
-
-                        /*let var = self
-                            .globals
-                            .get(&expr.clone().get_variable())
-                            .expect(format!("Variable not found. Got: {:?}", expr).as_str());
-
-                        var.clone()*/
                     }
 
                     other => {
@@ -93,7 +77,7 @@ impl Interpreter {
     }
 
     fn eval_expr(&mut self, expr: &Expr) -> Result<LiteralExpr> {
-        // eprintln!("EVAL EXPR: {:?}", expr);
+        //  eprintln!("EVAL EXPR: {:?}", expr);
         match expr {
             Expr::Literal(literal_expr) => Ok((*literal_expr).clone()),
 
