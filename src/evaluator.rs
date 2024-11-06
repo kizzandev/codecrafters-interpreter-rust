@@ -88,11 +88,11 @@ impl Interpreter {
                 // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
 
                 if !left_literal.is_same_type_weird(&right_literal) {
-                    return Err("Operands must be numbers.".to_string());
+                    return Ok(LiteralExpr::FALSE);
                 }
 
                 if !left_literal.is_same_type(&right_literal) {
-                    return Ok(LiteralExpr::FALSE);
+                    return Err("Operands must be numbers.".to_string());
                 }
 
                 match (left_literal, token_type, right_literal) {

@@ -50,17 +50,7 @@ impl LiteralExpr {
             // return first == second;
             return true;
         }
-
-        matches!(
-            (self, other),
-            (LiteralExpr::Number(_), LiteralExpr::Number(_))
-                | (LiteralExpr::StringLiteral(_), LiteralExpr::StringLiteral(_))
-                | (LiteralExpr::TRUE, LiteralExpr::TRUE)
-                | (LiteralExpr::FALSE, LiteralExpr::FALSE)
-                | (LiteralExpr::TRUE, LiteralExpr::FALSE)
-                | (LiteralExpr::FALSE, LiteralExpr::TRUE)
-                | (LiteralExpr::NIL, LiteralExpr::NIL)
-        )
+        false
     }
 }
 
