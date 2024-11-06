@@ -9,7 +9,7 @@ mod parser;
 mod tokenizer;
 
 use crate::evaluator::eval;
-use crate::parser::{Expr, LiteralExpr, Parser};
+use crate::parser::{Expr, LiteralExpr, Parser, print_expr};
 use crate::tokenizer::tokenize;
 use evaluator::Interpreter;
 use interpreter_starter_rust::read_file;
@@ -44,7 +44,7 @@ fn main() -> ExitCode {
                             return ExitCode::SUCCESS;
                         }
 
-                        println!("{:?}", expr_);
+                        println!("{}", print_expr(&expr_));
                     }
                 }
             }
