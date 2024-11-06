@@ -37,15 +37,29 @@ impl LiteralExpr {
         )
     }
 
-    pub fn is_same_type_weird(&self, other: &LiteralExpr) -> bool {
+    pub fn is_same_number_and_parsable(&self, other: &LiteralExpr) -> bool {
         if matches!(
             (self, other),
             (LiteralExpr::Number(_), LiteralExpr::StringLiteral(_))
-                | (LiteralExpr::StringLiteral(_), LiteralExpr::Number(_))
         ) {
-            return true;
+            return other.is_parsable();
         }
+
+        if matches!(
+            (self, other),
+            (LiteralExpr::StringLiteral(_), LiteralExpr::Number(_))
+        ) {
+            return self.is_parsable();
+        }
+
         false
+    }
+
+    fn is_parsable(&self) -> bool {
+        match self.to_string().parse::<f64>() {
+            Err(_) => false,
+            Ok(_) => true,
+        }
     }
 }
 

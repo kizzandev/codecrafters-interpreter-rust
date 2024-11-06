@@ -92,9 +92,9 @@ impl Interpreter {
                     return Err("Operands must be numbers.".to_string());
                 }
 
-                // if left_literal.is_same_type_weird(&right_literal) {
-                //     return Ok(LiteralExpr::FALSE);
-                // }
+                if left_literal.is_same_number_and_parsable(&right_literal) {
+                    return Ok(LiteralExpr::FALSE);
+                }
 
                 match (left_literal, token_type, right_literal) {
                     // string concatenation
