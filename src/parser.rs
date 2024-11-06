@@ -94,6 +94,10 @@ impl<'a> Parser<'a> {
         }
     }
 
+    pub fn eval_expr(&mut self) -> Result<Expr<'a>> {
+        self.expression()
+    }
+
     fn consume_token(&mut self) {
         // eprintln!("CONSUMED: {:?}", self.lexer.next());
         self.lexer.next();
@@ -137,7 +141,7 @@ impl<'a> Parser<'a> {
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Var(name, initializer)),
             other => Err(format!(
-                "expected semicolon at {} : {}\nGot {:#?}",
+                "expected semicolon after declaration at {} : {}\nGot {:#?}",
                 self.lexer.get_line(),
                 self.lexer.get_column(),
                 other,
@@ -156,7 +160,7 @@ impl<'a> Parser<'a> {
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
             other => Err(format!(
-                "expected semicolon at {} : {}\nGot {:#?}",
+                "expected semicolon after a print statement at {} : {}\nGot {:#?}",
                 self.lexer.get_line(),
                 self.lexer.get_column(),
                 other,
@@ -175,7 +179,7 @@ impl<'a> Parser<'a> {
                 Ok(Stmt::Expression(expr))
             }
             other => Err(format!(
-                "expected semicolon at {} : {}\nGot {:#?}",
+                "expected semicolon after an expression at {} : {}\nGot {:#?}",
                 self.lexer.get_line(),
                 self.lexer.get_column(),
                 other,

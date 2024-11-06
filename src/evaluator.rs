@@ -254,16 +254,16 @@ impl Res {
     }
 }
 
-pub fn eval(stmt: &Stmt) -> Res {
+pub fn eval(expr: &Expr) -> Res {
     let res = Interpreter {
         globals: HashMap::new(),
     }
-    .eval_stmt(stmt)
+    .eval_expr(expr)
     .map(|literal_expr| print_literal(&literal_expr));
 
     match res {
         Ok(value) => Res::Ok(value),
-        _ => Res::RuntimeError(format!("{:?} is not an expression!", stmt)),
+        _ => Res::RuntimeError(format!("{:?} is not an expression!", expr)),
     }
 }
 

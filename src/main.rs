@@ -48,14 +48,27 @@ fn main() -> ExitCode {
         "evaluate" => {
             let mut parser = Parser::new(&file_contents);
 
-            let a = parser.next();
-            if a.is_some() {
-                let a = a.unwrap();
-                if a.is_ok() {
-                    let a = a.unwrap();
-                    eval(&a);
+            match parser.eval_expr() {
+                Err(err) => {
+                    eprintln!("Error: {err}");
+                    return ExitCode::from(70);
+                }
+                Ok(s) => {
+                    let res = eval(&s);
+                    if res.is_runtime_error() {
+                        eprintln!("Error: {:?}", res.get_error());
+                        return ExitCode::from(70);
+                    }
                 }
             }
+
+            // if a.is_some() {
+            //     let a = a.unwrap();
+            //     if a.is_ok() {
+            //         let a = a.unwrap();
+            //         eval(&a);
+            //     }
+            // }
 
             ExitCode::SUCCESS
         }
