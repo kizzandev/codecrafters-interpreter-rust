@@ -59,6 +59,7 @@ fn main() -> ExitCode {
                         eprintln!("Error: {:?}", res.get_error());
                         return ExitCode::from(70);
                     }
+                    println!("{}", res.to_string());
                 }
             }
 
