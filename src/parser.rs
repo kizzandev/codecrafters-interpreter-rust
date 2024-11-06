@@ -382,7 +382,7 @@ impl<'a> Parser<'a> {
                     let expr = self.expression()?;
                     if let Some((Token::Character(')'), _)) = self.lexer.peek() {
                         self.lexer.next();
-                        Ok(expr)
+                        Ok(Expr::Grouping(Box::new(expr)))
                     } else {
                         eprintln!("Error: Unmatched parentheses.");
                         Err("Error: Unmatched parentheses.".to_string())
