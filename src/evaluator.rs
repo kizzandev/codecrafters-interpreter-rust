@@ -87,7 +87,7 @@ impl Interpreter {
 
                 // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
 
-                if left_literal.is_same_number_and_parsable(&right_literal) {
+                if left_literal.is_number_and_parsable(&right_literal) {
                     return Ok(LiteralExpr::FALSE);
                 }
 
@@ -279,5 +279,6 @@ fn print_literal(literal_expr: &LiteralExpr) -> String {
         LiteralExpr::TRUE => "true".to_string(),
         LiteralExpr::FALSE => "false".to_string(),
         LiteralExpr::NIL => "nil".to_string(),
+        LiteralExpr::EOF => "EOF".to_string(),
     }
 }

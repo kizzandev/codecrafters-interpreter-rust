@@ -9,7 +9,7 @@ mod parser;
 mod tokenizer;
 
 use crate::evaluator::eval;
-use crate::parser::Parser;
+use crate::parser::{Expr, LiteralExpr, Parser};
 use crate::tokenizer::tokenize;
 use evaluator::Interpreter;
 use interpreter_starter_rust::read_file;
@@ -31,19 +31,23 @@ fn main() -> ExitCode {
         "parse" => {
             let mut parser = Parser::new(&file_contents);
 
-            while let Some(stmt) = parser.next() {
-                match stmt {
+            loop {
+                let expr = parser.parse_code();
+
+                match expr {
                     Err(err) => {
                         eprintln!("{err}");
                         return ExitCode::from(65);
                     }
-                    Ok(stmt_) => {
-                        println!("{:?}", stmt_);
+                    Ok(expr_) => {
+                        if expr_ == Expr::Literal(LiteralExpr::EOF) {
+                            return ExitCode::SUCCESS;
+                        }
+
+                        println!("{:?}", expr_);
                     }
                 }
             }
-
-            ExitCode::SUCCESS
         }
         "evaluate" => {
             let mut parser = Parser::new(&file_contents);

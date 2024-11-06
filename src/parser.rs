@@ -9,6 +9,8 @@ pub enum LiteralExpr {
     TRUE,
     FALSE,
     NIL,
+
+    EOF,
 }
 
 impl std::fmt::Display for LiteralExpr {
@@ -19,6 +21,7 @@ impl std::fmt::Display for LiteralExpr {
             LiteralExpr::TRUE => write!(f, "true"),
             LiteralExpr::FALSE => write!(f, "false"),
             LiteralExpr::NIL => write!(f, "nil"),
+            LiteralExpr::EOF => write!(f, "EOF"),
         }
     }
 }
@@ -37,7 +40,7 @@ impl LiteralExpr {
         )
     }
 
-    pub fn is_same_number_and_parsable(&self, other: &LiteralExpr) -> bool {
+    pub fn is_number_and_parsable(&self, other: &LiteralExpr) -> bool {
         if matches!(
             (self, other),
             (LiteralExpr::Number(_), LiteralExpr::StringLiteral(_))
@@ -63,7 +66,7 @@ impl LiteralExpr {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub enum Expr<'a> {
     Literal(LiteralExpr),
     Unary(Token<'a>, Box<Expr<'a>>),
@@ -121,7 +124,15 @@ impl<'a> Parser<'a> {
 
     pub fn eval_expr(&mut self) -> Result<Expr<'a>> {
         if self.lexer.peek().is_none() {
-            return Ok(Expr::Literal(LiteralExpr::StringLiteral("".to_string())));
+            return Ok(Expr::Literal(LiteralExpr::EOF));
+        };
+
+        self.expression()
+    }
+
+    pub fn parse_code(&mut self) -> Result<Expr<'a>> {
+        if self.lexer.peek().is_none() {
+            return Ok(Expr::Literal(LiteralExpr::EOF));
         };
 
         self.expression()
