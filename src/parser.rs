@@ -48,7 +48,7 @@ impl LiteralExpr {
             // first = self.to_string();
             // second = other.to_string();
             // return first == second;
-            return false;
+            return true;
         }
 
         matches!(
