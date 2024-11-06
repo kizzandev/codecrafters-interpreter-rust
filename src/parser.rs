@@ -37,17 +37,18 @@ impl LiteralExpr {
         )
     }
 
-    pub fn is_same_type_or_value(&self, other: &LiteralExpr) -> bool {
-        let first;
-        let second;
+    pub fn is_same_type_weird(&self, other: &LiteralExpr) -> bool {
+        // let first;
+        // let second;
         if matches!(
             (self, other),
             (LiteralExpr::Number(_), LiteralExpr::StringLiteral(_))
                 | (LiteralExpr::StringLiteral(_), LiteralExpr::Number(_))
         ) {
-            first = self.to_string();
-            second = other.to_string();
-            return first == second;
+            // first = self.to_string();
+            // second = other.to_string();
+            // return first == second;
+            return false;
         }
 
         matches!(
