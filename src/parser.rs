@@ -118,10 +118,20 @@ pub fn print_expr(expr: &Expr) -> String {
 #[derive(Debug)]
 pub enum Stmt<'a> {
     Expression(Expr<'a>),
-    Print(Expr<'a>),
+    Print(Box<Stmt<'a>>),
     Var(String, Option<Expr<'a>>),
 
     Err(String),
+}
+
+impl<'a> Stmt<'a> {
+    pub fn get_expression(&self) -> Option<Expr<'a>> {
+        match self {
+            Stmt::Expression(expr) => Some(expr.clone()),
+            Stmt::Var(_, Some(expr)) => Some(expr.clone()),
+            _ => None,
+        }
+    }
 }
 
 #[derive(Clone)]
@@ -166,7 +176,7 @@ impl<'a> Parser<'a> {
             _ => self.expression_statement(),
         };
 
-        eprintln!("STATEMENT RES: {:?}", res);
+        // eprintln!("STATEMENT RES: {:?}", res);
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => res,
             other => Err(format!(
@@ -219,10 +229,10 @@ impl<'a> Parser<'a> {
         // eprintln!("PRINT TOKEN: {:?}", self.consume_token());
         self.consume_token();
 
-        let expr = self.expression()?;
+        let expr_stmt = self.expression_statement()?;
         // eprintln!("PRINT EXPR: {:?}", expr);
 
-        Ok(Stmt::Print(expr))
+        Ok(Stmt::Print(Box::new(expr_stmt)))
         // eprintln!("PRINT: {:?}", self.lexer.peek());
         /*match self.lexer.next() {
             Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
@@ -243,7 +253,7 @@ impl<'a> Parser<'a> {
         match self.lexer.peek() {
             Some((Token::Character(';'), _)) => {
                 // self.lexer.next();
-                self.consume_token();
+                // self.consume_token();
                 Ok(Stmt::Expression(expr))
             }
             Some((Token::Character('='), _)) => {

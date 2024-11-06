@@ -1,7 +1,6 @@
 use crate::lexer::Token;
 use crate::parser::{Expr, LiteralExpr, Stmt};
 
-use std::clone;
 use std::collections::HashMap;
 use std::ops::Deref;
 
@@ -32,20 +31,55 @@ impl Interpreter {
                 }
             }
 
-            Stmt::Print(expr) => {
-                let literal: LiteralExpr = match expr {
-                    Expr::Variable(_) => {
+            Stmt::Print(stmt_box) => {
+                let stmt = stmt_box.deref();
+
+                let literal: LiteralExpr = match stmt {
+                    Stmt::Expression(Expr::Variable(_)) => {
+                        let expr_op = stmt.get_expression();
+                        let expr;
+                        if expr_op.is_some() {
+                            expr = expr_op.unwrap();
+                        } else {
+                            return Err("Only expressions can be printed.".to_string());
+                        }
+
                         match self.globals.get(&expr.clone().get_variable()) {
                             None => {
-                                return Err(format!("Undefined variable '{}'.", expr.get_variable()))
+                                return Err(format!(
+                                    "Undefined variable '{}'.",
+                                    expr.get_variable()
+                                ))
                             }
+                            Some(lit) => lit.clone(),
+                        }
+                    }
+
+                    Stmt::Var(name, initializer) => {
+                        let value = match initializer {
+                            Some(expr) => self.eval_expr(&expr)?,
+
+                            None => LiteralExpr::NIL,
+                        };
+
+                        self.globals.insert(name.clone(), value);
+
+                        match self.globals.get(name) {
+                            None => return Err(format!("Undefined variable '{}'.", name)),
                             Some(lit) => lit.clone(),
                         }
                     }
 
                     other => {
                         let mut e = self.clone();
-                        e.eval_expr(&other)?
+                        let other_expr = other.get_expression();
+                        let expr;
+                        if other_expr.is_some() {
+                            expr = other_expr.unwrap();
+                        } else {
+                            return Err("Only expressions can be printed.".to_string());
+                        }
+                        e.eval_expr(&expr)?
                     }
                 };
 
