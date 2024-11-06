@@ -36,6 +36,31 @@ impl LiteralExpr {
                 | (LiteralExpr::NIL, LiteralExpr::NIL)
         )
     }
+
+    pub fn is_same_type_or_value(&self, other: &LiteralExpr) -> bool {
+        let first;
+        let second;
+        if matches!(
+            (self, other),
+            (LiteralExpr::Number(_), LiteralExpr::StringLiteral(_))
+                | (LiteralExpr::StringLiteral(_), LiteralExpr::Number(_))
+        ) {
+            first = self.to_string();
+            second = other.to_string();
+            return first == second;
+        }
+
+        matches!(
+            (self, other),
+            (LiteralExpr::Number(_), LiteralExpr::Number(_))
+                | (LiteralExpr::StringLiteral(_), LiteralExpr::StringLiteral(_))
+                | (LiteralExpr::TRUE, LiteralExpr::TRUE)
+                | (LiteralExpr::FALSE, LiteralExpr::FALSE)
+                | (LiteralExpr::TRUE, LiteralExpr::FALSE)
+                | (LiteralExpr::FALSE, LiteralExpr::TRUE)
+                | (LiteralExpr::NIL, LiteralExpr::NIL)
+        )
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -95,6 +120,10 @@ impl<'a> Parser<'a> {
     }
 
     pub fn eval_expr(&mut self) -> Result<Expr<'a>> {
+        if self.lexer.peek().is_none() {
+            return Ok(Expr::Literal(LiteralExpr::StringLiteral("".to_string())));
+        };
+
         self.expression()
     }
 

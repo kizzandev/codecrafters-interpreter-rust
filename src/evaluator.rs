@@ -87,7 +87,7 @@ impl Interpreter {
 
                 // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
 
-                if !left_literal.is_same_type(&right_literal) {
+                if !left_literal.is_same_type_or_value(&right_literal) {
                     return Err("Operands must be numbers.".to_string());
                 }
 
