@@ -1,7 +1,9 @@
 use crate::lexer::Token;
 use crate::parser::{Expr, LiteralExpr, Stmt};
 
+use std::clone;
 use std::collections::HashMap;
+use std::ops::Deref;
 
 type Result<T> = std::result::Result<T, String>;
 
@@ -33,11 +35,28 @@ impl Interpreter {
             Stmt::Print(expr) => {
                 let literal: LiteralExpr = match expr {
                     Expr::Variable(_) => {
-                        let var = self
+                        /*if self.globals.get(&expr.clone().get_variable()).is_none() {
+                            return Err(format!("Undefined variable '{}'", expr.get_variable()));
+                        }
+
+                        self.globals
+                            .get(&expr.clone().get_variable())
+                            .unwrap()
+                            .clone()*/
+
+                        match self.globals.get(&expr.clone().get_variable()) {
+                            None => {
+                                return Err(format!("Undefined variable '{}'.", expr.get_variable()))
+                            }
+                            Some(lit) => lit.clone(),
+                        }
+
+                        /*let var = self
                             .globals
                             .get(&expr.clone().get_variable())
                             .expect(format!("Variable not found. Got: {:?}", expr).as_str());
-                        var.clone()
+
+                        var.clone()*/
                     }
 
                     other => {
