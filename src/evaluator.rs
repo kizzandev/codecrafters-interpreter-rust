@@ -8,26 +8,71 @@ type Result<T> = std::result::Result<T, String>;
 
 #[derive(Clone)]
 pub struct Interpreter {
-    super_interpreter: Option<Box<Interpreter>>,
-    globals: HashMap<String, LiteralExpr>,
+    enclosing: Option<Box<Interpreter>>,
+    values: Vec<HashMap<String, LiteralExpr>>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Self {
-            super_interpreter: None,
-            globals: HashMap::new(),
+            enclosing: None,
+            values: vec![],
         }
     }
 
-    fn new_super(interpreter: Option<Box<Interpreter>>) -> Self {
+    /*fn new_super(interpreter: Option<Box<Interpreter>>) -> Self {
         Self {
-            super_interpreter: interpreter,
-            globals: HashMap::new(),
+            enclosing: interpreter,
+            values: vec![],
+        }
+    }*/
+
+    fn scope_enter(&mut self) {
+        self.values.push(HashMap::new());
+    }
+
+    fn scope_exit(&mut self) {
+        self.values.pop();
+    }
+
+    fn define_variable(&mut self, name: String, value: LiteralExpr) {
+        if let Some(env) = self.values.last_mut() {
+            env.insert(name.to_string(), value);
         }
     }
 
-    fn find_variable_in_scope(&self, var_name: &str) -> Option<LiteralExpr> {
+    fn assign_variable(&mut self, name: String, value: LiteralExpr) -> Result<()> {
+        for env in self.values.iter_mut().rev() {
+            if env.contains_key(&name) {
+                env.insert(name.to_string(), value);
+                return Ok(());
+            }
+        }
+
+        // if let Some(ref mut enclosing) = self.enclosing {
+        //     enclosing.assign_variable(name.to_string(), value)
+        // } else {
+        //     Err(format!("Undefined variable '{}'.", name))
+        // }
+
+        Err(format!("Undefined variable '{}'.", name))
+    }
+
+    fn find_variable(&self, name: String) -> Option<LiteralExpr> {
+        for env in self.values.iter().rev() {
+            if let Some(val) = env.get(&name) {
+                return Some(val.clone());
+            }
+        }
+
+        if let Some(ref super_interpreter) = self.enclosing {
+            return super_interpreter.find_variable(name);
+        }
+
+        None
+    }
+
+    /*fn find_variable_in_scope(&self, var_name: &str) -> Option<LiteralExpr> {
         if let Some(lit) = self.globals.get(var_name) {
             return Some(lit.clone());
         }
@@ -37,7 +82,7 @@ impl Interpreter {
         }
 
         None
-    }
+    }*/
 
     pub fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
@@ -58,48 +103,20 @@ impl Interpreter {
                 let literal: LiteralExpr = match stmt {
                     Stmt::Expression(Expr::Variable(_)) => {
                         let expr_op = stmt.get_expression();
-                        /*let expr;
-                        if expr_op.is_some() {
-                            expr = expr_op.unwrap();
-                        } else {
-                            return Err("Only expressions can be printed.".to_string());
-                        }*/
+
                         let expr = match expr_op {
                             Some(e) => e,
                             None => return Err("Only expressions can be printed.".to_string()),
                         };
 
                         if let Some(literal) =
-                            self.find_variable_in_scope(&expr.clone().get_variable())
+                            // self.find_variable_in_scope(&expr.clone().get_variable())
+                            self.find_variable(expr.clone().get_variable())
                         {
                             literal
                         } else {
                             return Err(format!("Undefined variable '{}'.", expr.get_variable()));
                         }
-
-                        /*let mut var_opt = match self.globals.get(&expr.clone().get_variable()) {
-                            Some(lit) => Some(lit.clone()),
-                            None => None,
-                        };
-
-                        if var_opt.is_none() && self.super_interpreter.is_some() {
-                            var_opt = match self
-                                .clone()
-                                .super_interpreter
-                                .unwrap()
-                                .globals
-                                .get(&expr.clone().get_variable())
-                            {
-                                Some(lit) => Some(lit.clone()),
-                                None => None,
-                            }
-                        }
-
-                        if var_opt.is_some() {
-                            var_opt.unwrap()
-                        } else {
-                            return Err(format!("Undefined variable '{}'.", expr.get_variable()));
-                        }*/
                     }
 
                     Stmt::Var(name, initializer) => {
@@ -112,9 +129,11 @@ impl Interpreter {
                             None => LiteralExpr::NIL,
                         };
 
-                        self.globals.insert(name.clone(), value);
+                        // self.globals.insert(name.clone(), value);
+                        let _ = self.assign_variable(name.to_string(), value);
 
-                        match self.globals.get(name) {
+                        // match self.globals.get(name) {
+                        match self.find_variable(name.to_string()) {
                             None => return Err(format!("Undefined variable '{}'.", name)),
                             Some(lit) => lit.clone(),
                         }
@@ -152,7 +171,7 @@ impl Interpreter {
                                 let val = *(value_.clone().unwrap());
                                 let val = val.get_expression().unwrap();
                                 let expr = self.eval_expr(&val)?;
-                                self.globals.insert(name.to_string(), expr);
+                                let _ = self.assign_variable(name.to_string(), expr);
                             }
                             _ => {}
                         }
@@ -164,22 +183,66 @@ impl Interpreter {
                     None => LiteralExpr::NIL,
                 };
 
-                self.globals.insert(name.clone(), value);
+                self.assign_variable(name.clone(), value)?;
+            }
+
+            Stmt::VarDecl(name, initializer) => {
+                let value = match initializer {
+                    Some(expr) => {
+                        let val = *expr;
+
+                        match val {
+                            Stmt::Var(ref name, ref value_) => {
+                                let val = *(value_.clone().unwrap());
+                                let val = val.get_expression().unwrap();
+                                let expr = self.eval_expr(&val)?;
+                                // self.globals.insert(name.to_string(), expr);
+                                // let _ = self.assign_variable(name.to_string(), expr);
+                                let _ = self.define_variable(name.to_string(), expr);
+
+                                /*if self
+                                    .values
+                                    .last()
+                                    .map_or(false, |env| env.contains_key(name))
+                                {
+                                    self.assign_variable(name.to_string(), expr)?;
+                                } else {
+                                    self.define_variable(name.to_string(), expr);
+                                }*/
+                            }
+                            _ => {}
+                        }
+
+                        let val = val.get_expression().unwrap();
+                        self.eval_expr(&val)?
+                    }
+
+                    None => LiteralExpr::NIL,
+                };
+
+                // self.globals.insert(name.clone(), value);
+                self.define_variable(name.clone(), value);
+                /*if self
+                    .values
+                    .last()
+                    .map_or(false, |env| env.contains_key(&name))
+                {
+                    self.assign_variable(name.clone(), value)?;
+                } else {
+                    self.define_variable(name.clone(), value);
+                }*/
             }
 
             Stmt::Block(statements) => {
-                let super_maker: Option<Box<Interpreter>> = Some(Box::new(self.clone()));
-                let mut interpreter = Interpreter::new_super(super_maker);
+                self.scope_enter();
 
                 let mut iter_stmt = statements.iter();
                 while let Some(stmt) = iter_stmt.next() {
                     let s = stmt.clone();
-                    let res = interpreter.run(s);
-                    if res.is_err() {
-                        eprintln!("{:?}", res.err().unwrap());
-                        return Err(format!("Runtime error inside a block statement."));
-                    }
+                    let _ = self.run(s);
                 }
+
+                self.scope_exit();
             }
         }
 
@@ -328,18 +391,12 @@ impl Interpreter {
                 _ => Err(format!("{} is not possible in this context!", token)),
             },
 
-            Expr::Variable(name) => match self.globals.get(name) {
+            // Expr::Variable(name) => match self.globals.get(name) {
+            Expr::Variable(name) => match self.find_variable(name.to_string()) {
                 Some(literal) => Ok(literal.clone()),
 
                 None => Err(format!("Undefined variable: {}", name)),
             },
-        }
-    }
-
-    fn eval_stmt(&mut self, stmt: &Stmt) -> Result<LiteralExpr> {
-        match stmt {
-            Stmt::Expression(expr) => self.eval_expr(expr),
-            _ => Err(format!("{:?} is not an expression!", stmt)),
         }
     }
 }
@@ -374,8 +431,8 @@ impl Res {
 
 pub fn eval(expr: &Expr) -> Res {
     let res = Interpreter {
-        super_interpreter: None,
-        globals: HashMap::new(),
+        enclosing: None,
+        values: vec![],
     }
     .eval_expr(expr)
     .map(|literal_expr| print_literal(&literal_expr));

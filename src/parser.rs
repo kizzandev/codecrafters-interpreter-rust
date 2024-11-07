@@ -120,6 +120,7 @@ pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
     Var(String, Option<Box<Stmt<'a>>>),
+    VarDecl(String, Option<Box<Stmt<'a>>>),
     Block(Vec<Stmt<'a>>),
 }
 
@@ -215,7 +216,7 @@ impl<'a> Parser<'a> {
             _ => None,
         };
 
-        Ok(Stmt::Var(name, initializer))
+        Ok(Stmt::VarDecl(name, initializer))
     }
 
     fn print_statement(&mut self) -> Result<Stmt<'a>> {
