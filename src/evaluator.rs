@@ -57,7 +57,10 @@ impl Interpreter {
 
                     Stmt::Var(name, initializer) => {
                         let value = match initializer {
-                            Some(expr) => self.eval_expr(&expr)?,
+                            Some(expr) => {
+                                let val = (*expr).get_expression().unwrap();
+                                self.eval_expr(&val)?
+                            }
 
                             None => LiteralExpr::NIL,
                         };
@@ -94,7 +97,22 @@ impl Interpreter {
 
             Stmt::Var(name, initializer) => {
                 let value = match initializer {
-                    Some(expr) => self.eval_expr(&expr)?,
+                    Some(expr) => {
+                        let val = *expr;
+
+                        match val {
+                            Stmt::Var(ref name, ref value_) => {
+                                let val = *(value_.clone().unwrap());
+                                let val = val.get_expression().unwrap();
+                                let expr = self.eval_expr(&val)?;
+                                self.globals.insert(name.to_string(), expr);
+                            }
+                            _ => {}
+                        }
+
+                        let val = val.get_expression().unwrap();
+                        self.eval_expr(&val)?
+                    }
 
                     None => LiteralExpr::NIL,
                 };

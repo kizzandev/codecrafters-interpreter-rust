@@ -1,3 +1,5 @@
+use std::ops::Deref;
+
 use crate::lexer::{Lexer, Token};
 
 pub type Result<T> = std::result::Result<T, String>;
@@ -119,15 +121,18 @@ pub fn print_expr(expr: &Expr) -> String {
 pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
-    Var(String, Option<Expr<'a>>),
     // Var(String, Option<Expr<'a>>),
+    Var(String, Option<Box<Stmt<'a>>>),
 }
 
 impl<'a> Stmt<'a> {
     pub fn get_expression(&self) -> Option<Expr<'a>> {
         match self {
             Stmt::Expression(expr) => Some(expr.clone()),
-            Stmt::Var(_, Some(expr)) => Some(expr.clone()),
+            Stmt::Var(_, Some(expr)) => {
+                let val = *expr.clone();
+                Some(val.get_expression()?.clone())
+            }
             _ => None,
         }
     }
@@ -201,10 +206,10 @@ impl<'a> Parser<'a> {
             }
         };
 
-        let initializer: Option<Expr<'a>> = match self.lexer.peek() {
+        let initializer = match self.lexer.peek() {
             Some((Token::Character('='), _)) => {
                 self.lexer.next();
-                Some(self.expression()?)
+                Some(Box::new(self.expression_statement()?))
             }
             _ => None,
         };
@@ -228,17 +233,14 @@ impl<'a> Parser<'a> {
             Some((Token::Character('='), _)) => {
                 self.consume_token();
 
-                let init_stmt: Stmt<'a> = self.expression_statement()?;
+                let init_stmt = self.expression_statement()?;
                 // eprintln!("INITIALIZER STMT: {:?}", init_stmt);
-
-                let init_expr: Option<Expr<'_>> = init_stmt.get_expression();
-                // eprintln!("INITIALIZER EXPR: {:?}", init_expr);
 
                 let var_name: String = expr.get_variable();
                 // eprintln!("var name: {:?}", var_name);
 
                 if !var_name.is_empty() {
-                    Ok(Stmt::Var(var_name, init_expr.clone()))
+                    Ok(Stmt::Var(var_name, Some(Box::new(init_stmt.clone()))))
                 } else {
                     Err(format!(
                         "Invalid assignment target at {} : {}",
