@@ -115,7 +115,7 @@ pub fn print_expr(expr: &Expr) -> String {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
@@ -176,7 +176,7 @@ impl<'a> Parser<'a> {
             _ => self.expression_statement(),
         };
 
-        // eprintln!("STATEMENT RES: {:?}", res);
+        //  eprintln!("STATEMENT RES: {:?}", res);
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => res,
             other => Err(format!(
@@ -259,10 +259,11 @@ impl<'a> Parser<'a> {
             Some((Token::Character('='), _)) => {
                 // self.lexer.next();
                 self.consume_token();
-                let initializer = Some(self.expression()?);
+                let initializer = Some(self.expression_statement()?);
+                let initializer = initializer;
                 // eprintln!("THE CHANGED VARIABLE IS: {}", expr.clone().get_variable());
                 // eprintln!("THE NEW VALUE IS: {:?}", initializer.clone());
-                Ok(Stmt::Var(expr.get_variable(), initializer))
+                Ok(Stmt::Var(expr.get_variable(), initializer.get_expression()))
                 /*match self.lexer.peek() {
                     Some((Token::Character(';'), _)) => {
                     }
