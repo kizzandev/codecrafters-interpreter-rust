@@ -120,6 +120,7 @@ pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
     Var(String, Option<Expr<'a>>),
+    // Var(String, Option<Expr<'a>>),
 }
 
 impl<'a> Stmt<'a> {
@@ -173,7 +174,7 @@ impl<'a> Parser<'a> {
             _ => self.expression_statement(),
         };
 
-        //  eprintln!("STATEMENT RES: {:?}", res);
+        // eprintln!("STATEMENT RES: {:?}", res);
         match self.lexer.next() {
             Some((Token::Character(';'), _)) => res,
             other => Err(format!(
@@ -226,11 +227,25 @@ impl<'a> Parser<'a> {
             Some((Token::Character(';'), _)) => Ok(Stmt::Expression(expr)),
             Some((Token::Character('='), _)) => {
                 self.consume_token();
-                let initializer = Some(self.expression_statement()?);
-                let initializer = initializer.unwrap();
-                // eprintln!("THE CHANGED VARIABLE IS: {}", expr.clone().get_variable());
-                // eprintln!("THE NEW VALUE IS: {:?}", initializer.clone());
-                Ok(Stmt::Var(expr.get_variable(), initializer.get_expression()))
+
+                let init_stmt: Stmt<'a> = self.expression_statement()?;
+                // eprintln!("INITIALIZER STMT: {:?}", init_stmt);
+
+                let init_expr: Option<Expr<'_>> = init_stmt.get_expression();
+                // eprintln!("INITIALIZER EXPR: {:?}", init_expr);
+
+                let var_name: String = expr.get_variable();
+                // eprintln!("var name: {:?}", var_name);
+
+                if !var_name.is_empty() {
+                    Ok(Stmt::Var(var_name, init_expr.clone()))
+                } else {
+                    Err(format!(
+                        "Invalid assignment target at {} : {}",
+                        self.lexer.get_line(),
+                        self.lexer.get_column(),
+                    ))
+                }
             }
             other => Err(format!(
                 "expected semicolon after an expression at {} : {}\nGot {:#?}",
