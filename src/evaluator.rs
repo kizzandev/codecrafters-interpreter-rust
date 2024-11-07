@@ -8,14 +8,35 @@ type Result<T> = std::result::Result<T, String>;
 
 #[derive(Clone)]
 pub struct Interpreter {
+    super_interpreter: Option<Box<Interpreter>>,
     globals: HashMap<String, LiteralExpr>,
 }
 
 impl Interpreter {
     pub fn new() -> Self {
         Self {
+            super_interpreter: None,
             globals: HashMap::new(),
         }
+    }
+
+    fn new_super(interpreter: Option<Box<Interpreter>>) -> Self {
+        Self {
+            super_interpreter: interpreter,
+            globals: HashMap::new(),
+        }
+    }
+
+    fn find_variable_in_scope(&self, var_name: &str) -> Option<LiteralExpr> {
+        if let Some(lit) = self.globals.get(var_name) {
+            return Some(lit.clone());
+        }
+
+        if let Some(ref super_interpreter) = self.super_interpreter {
+            return super_interpreter.find_variable_in_scope(var_name);
+        }
+
+        None
     }
 
     pub fn run(&mut self, stmt: Stmt) -> Result<String> {
@@ -37,22 +58,48 @@ impl Interpreter {
                 let literal: LiteralExpr = match stmt {
                     Stmt::Expression(Expr::Variable(_)) => {
                         let expr_op = stmt.get_expression();
-                        let expr;
+                        /*let expr;
                         if expr_op.is_some() {
                             expr = expr_op.unwrap();
                         } else {
                             return Err("Only expressions can be printed.".to_string());
+                        }*/
+                        let expr = match expr_op {
+                            Some(e) => e,
+                            None => return Err("Only expressions can be printed.".to_string()),
+                        };
+
+                        if let Some(literal) =
+                            self.find_variable_in_scope(&expr.clone().get_variable())
+                        {
+                            literal
+                        } else {
+                            return Err(format!("Undefined variable '{}'.", expr.get_variable()));
                         }
 
-                        match self.globals.get(&expr.clone().get_variable()) {
-                            None => {
-                                return Err(format!(
-                                    "Undefined variable '{}'.",
-                                    expr.get_variable()
-                                ))
+                        /*let mut var_opt = match self.globals.get(&expr.clone().get_variable()) {
+                            Some(lit) => Some(lit.clone()),
+                            None => None,
+                        };
+
+                        if var_opt.is_none() && self.super_interpreter.is_some() {
+                            var_opt = match self
+                                .clone()
+                                .super_interpreter
+                                .unwrap()
+                                .globals
+                                .get(&expr.clone().get_variable())
+                            {
+                                Some(lit) => Some(lit.clone()),
+                                None => None,
                             }
-                            Some(lit) => lit.clone(),
                         }
+
+                        if var_opt.is_some() {
+                            var_opt.unwrap()
+                        } else {
+                            return Err(format!("Undefined variable '{}'.", expr.get_variable()));
+                        }*/
                     }
 
                     Stmt::Var(name, initializer) => {
@@ -121,7 +168,8 @@ impl Interpreter {
             }
 
             Stmt::Block(statements) => {
-                let mut interpreter = Interpreter::new();
+                let super_maker: Option<Box<Interpreter>> = Some(Box::new(self.clone()));
+                let mut interpreter = Interpreter::new_super(super_maker);
 
                 let mut iter_stmt = statements.iter();
                 while let Some(stmt) = iter_stmt.next() {
@@ -326,6 +374,7 @@ impl Res {
 
 pub fn eval(expr: &Expr) -> Res {
     let res = Interpreter {
+        super_interpreter: None,
         globals: HashMap::new(),
     }
     .eval_expr(expr)
