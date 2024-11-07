@@ -1,5 +1,3 @@
-use std::ops::Deref;
-
 use crate::lexer::{Lexer, Token};
 
 pub type Result<T> = std::result::Result<T, String>;
@@ -121,8 +119,8 @@ pub fn print_expr(expr: &Expr) -> String {
 pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
-    // Var(String, Option<Expr<'a>>),
     Var(String, Option<Box<Stmt<'a>>>),
+    Block(Vec<Stmt<'a>>),
 }
 
 impl<'a> Stmt<'a> {
@@ -180,14 +178,17 @@ impl<'a> Parser<'a> {
         };
 
         // eprintln!("STATEMENT RES: {:?}", res);
-        match self.lexer.next() {
-            Some((Token::Character(';'), _)) => res,
-            other => Err(format!(
-                "expected semicolon at the end of an statement, at {} : {}\nGot {:#?}",
-                self.lexer.get_line(),
-                self.lexer.get_column(),
-                other,
-            )),
+        match res {
+            Ok(Stmt::Block(_)) => res,
+            _ => match self.lexer.next() {
+                Some((Token::Character(';'), _)) => res,
+                other => Err(format!(
+                    "expected semicolon at the end of an statement, at {} : {}\nGot {:#?}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column(),
+                    other,
+                )),
+            },
         }
     }
 
@@ -223,38 +224,60 @@ impl<'a> Parser<'a> {
         Ok(Stmt::Print(Box::new(expr_stmt)))
     }
 
-    fn expression_statement(&mut self) -> Result<Stmt<'a>> {
-        let expr = self.expression()?;
+    fn block_statement(&mut self) -> Result<Stmt<'a>> {
+        let mut statements = Vec::new();
+        self.consume_token(); // '{'
 
-        // eprintln!("EXPR STATAMENT: {:?}", expr);
-
-        match self.lexer.peek() {
-            Some((Token::Character(';'), _)) => Ok(Stmt::Expression(expr)),
-            Some((Token::Character('='), _)) => {
-                self.consume_token();
-
-                let init_stmt = self.expression_statement()?;
-                // eprintln!("INITIALIZER STMT: {:?}", init_stmt);
-
-                let var_name: String = expr.get_variable();
-                // eprintln!("var name: {:?}", var_name);
-
-                if !var_name.is_empty() {
-                    Ok(Stmt::Var(var_name, Some(Box::new(init_stmt.clone()))))
-                } else {
-                    Err(format!(
-                        "Invalid assignment target at {} : {}",
-                        self.lexer.get_line(),
-                        self.lexer.get_column(),
-                    ))
-                }
+        while let Some((token, _)) = self.lexer.peek() {
+            if matches!(token, Token::Character('}')) {
+                break;
             }
-            other => Err(format!(
-                "expected semicolon after an expression at {} : {}\nGot {:#?}",
+            statements.push(self.statement()?);
+        }
+
+        if let Some((Token::Character('}'), _)) = self.lexer.next() {
+            Ok(Stmt::Block(statements))
+        } else {
+            Err(format!(
+                "expected closing braces '}}' for block at {} : {}",
                 self.lexer.get_line(),
                 self.lexer.get_column(),
-                other,
-            )),
+            ))
+        }
+    }
+
+    fn expression_statement(&mut self) -> Result<Stmt<'a>> {
+        match self.lexer.peek() {
+            Some((Token::Character('{'), _)) => self.block_statement(),
+            _ => {
+                let expr = self.expression()?;
+
+                match self.lexer.peek() {
+                    Some((Token::Character(';'), _)) => Ok(Stmt::Expression(expr)),
+                    Some((Token::Character('='), _)) => {
+                        self.consume_token();
+
+                        let init_stmt = self.expression_statement()?;
+                        let var_name: String = expr.get_variable();
+
+                        if !var_name.is_empty() {
+                            Ok(Stmt::Var(var_name, Some(Box::new(init_stmt.clone()))))
+                        } else {
+                            Err(format!(
+                                "Invalid assignment target at {} : {}",
+                                self.lexer.get_line(),
+                                self.lexer.get_column(),
+                            ))
+                        }
+                    }
+                    other => Err(format!(
+                        "expected semicolon after an expression at {} : {}\nGot {:#?}",
+                        self.lexer.get_line(),
+                        self.lexer.get_column(),
+                        other,
+                    )),
+                }
+            }
         }
     }
 

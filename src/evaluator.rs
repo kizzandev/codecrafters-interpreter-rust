@@ -119,6 +119,20 @@ impl Interpreter {
 
                 self.globals.insert(name.clone(), value);
             }
+
+            Stmt::Block(statements) => {
+                let mut interpreter = Interpreter::new();
+
+                let mut iter_stmt = statements.iter();
+                while let Some(stmt) = iter_stmt.next() {
+                    let s = stmt.clone();
+                    let res = interpreter.run(s);
+                    if res.is_err() {
+                        eprintln!("{:?}", res.err().unwrap());
+                        return Err(format!("Runtime error inside a block statement."));
+                    }
+                }
+            }
         }
 
         Ok(stdout)
