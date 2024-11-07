@@ -120,8 +120,6 @@ pub enum Stmt<'a> {
     Expression(Expr<'a>),
     Print(Box<Stmt<'a>>),
     Var(String, Option<Expr<'a>>),
-
-    Err(String),
 }
 
 impl<'a> Stmt<'a> {
@@ -167,7 +165,6 @@ impl<'a> Parser<'a> {
         self.lexer.next();
     }
 
-    // fn statement(&mut self, token: (Token, usize)) -> Result<Stmt<'a>> {
     fn statement(&mut self) -> Result<Stmt<'a>> {
         // eprintln!("STATEMENT CALLED: {:?}", self.lexer.peek().unwrap().0);
         let res = match self.lexer.peek().unwrap().0 {
@@ -189,9 +186,7 @@ impl<'a> Parser<'a> {
     }
 
     fn var_declaration(&mut self) -> Result<Stmt<'a>> {
-        // eprintln!("VAR TOKEN: {:?}", self.consume_token());
-        // eprintln!("VAR DECL TOKEN: {:?}", self.lexer.next());
-        self.lexer.next();
+        self.consume_token();
 
         let name = match self.lexer.next() {
             Some((Token::Identifier(i), _)) => i.to_string(),
@@ -214,35 +209,12 @@ impl<'a> Parser<'a> {
         };
 
         Ok(Stmt::Var(name, initializer))
-        /*match self.lexer.next() {
-            Some((Token::Character(';'), _)) => Ok(Stmt::Var(name, initializer)),
-            other => Err(format!(
-                "expected semicolon after declaration at {} : {}\nGot {:#?}",
-                self.lexer.get_line(),
-                self.lexer.get_column(),
-                other,
-            )),
-        }*/
     }
 
     fn print_statement(&mut self) -> Result<Stmt<'a>> {
-        // eprintln!("PRINT TOKEN: {:?}", self.consume_token());
         self.consume_token();
-
         let expr_stmt = self.expression_statement()?;
-        // eprintln!("PRINT EXPR: {:?}", expr);
-
         Ok(Stmt::Print(Box::new(expr_stmt)))
-        // eprintln!("PRINT: {:?}", self.lexer.peek());
-        /*match self.lexer.next() {
-            Some((Token::Character(';'), _)) => Ok(Stmt::Print(expr)),
-            other => Err(format!(
-                "expected semicolon after a print statement at {} : {}\nGot {:#?}",
-                self.lexer.get_line(),
-                self.lexer.get_column(),
-                other,
-            )),
-        }*/
     }
 
     fn expression_statement(&mut self) -> Result<Stmt<'a>> {
@@ -251,29 +223,14 @@ impl<'a> Parser<'a> {
         // eprintln!("EXPR STATAMENT: {:?}", expr);
 
         match self.lexer.peek() {
-            Some((Token::Character(';'), _)) => {
-                // self.lexer.next();
-                // self.consume_token();
-                Ok(Stmt::Expression(expr))
-            }
+            Some((Token::Character(';'), _)) => Ok(Stmt::Expression(expr)),
             Some((Token::Character('='), _)) => {
-                // self.lexer.next();
                 self.consume_token();
                 let initializer = Some(self.expression_statement()?);
-                let initializer = initializer;
+                let initializer = initializer.unwrap();
                 // eprintln!("THE CHANGED VARIABLE IS: {}", expr.clone().get_variable());
                 // eprintln!("THE NEW VALUE IS: {:?}", initializer.clone());
                 Ok(Stmt::Var(expr.get_variable(), initializer.get_expression()))
-                /*match self.lexer.peek() {
-                    Some((Token::Character(';'), _)) => {
-                    }
-                    other => Err(format!(
-                        "expected semicolon after declaration at {} : {}\nGot {:#?}",
-                        self.lexer.get_line(),
-                        self.lexer.get_column(),
-                        other,
-                    )),
-                }*/
             }
             other => Err(format!(
                 "expected semicolon after an expression at {} : {}\nGot {:#?}",

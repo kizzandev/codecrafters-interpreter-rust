@@ -101,10 +101,6 @@ impl Interpreter {
 
                 self.globals.insert(name.clone(), value);
             }
-
-            Stmt::Err(error) => {
-                eprintln!("Error: {error}");
-            }
         }
 
         Ok(stdout)
