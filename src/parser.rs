@@ -122,6 +122,7 @@ pub enum Stmt<'a> {
     Var(String, Option<Box<Stmt<'a>>>),
     VarDecl(String, Option<Box<Stmt<'a>>>),
     Block(Vec<Stmt<'a>>),
+    If(Expr<'a>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
 }
 
 impl<'a> Stmt<'a> {
@@ -175,12 +176,14 @@ impl<'a> Parser<'a> {
         let res = match self.lexer.peek().unwrap().0 {
             Token::ReservedKeyword("var") => self.var_declaration(),
             Token::ReservedKeyword("print") => self.print_statement(),
+            Token::ReservedKeyword("if") => self.if_statement(),
             _ => self.expression_statement(),
         };
 
-        // eprintln!("STATEMENT RES: {:?}", res);
+        eprintln!("STATEMENT RES: {:?}", res);
         match res {
             Ok(Stmt::Block(_)) => res,
+            Ok(Stmt::If(_, _, _)) => res,
             _ => match self.lexer.next() {
                 Some((Token::Character(';'), _)) => res,
                 other => Err(format!(
@@ -191,6 +194,51 @@ impl<'a> Parser<'a> {
                 )),
             },
         }
+    }
+
+    fn if_statement(&mut self) -> Result<Stmt<'a>> {
+        self.consume_token(); // if
+        let mut has_open_braces = false;
+        let mut else_block: Option<Box<Stmt<'a>>> = None;
+
+        match self.lexer.peek() {
+            Some((Token::Character('('), _)) => self.consume_token(), // (
+            _ => {
+                return Err(format!(
+                    "Missing parethesis '(' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        let condition = self.expression()?;
+
+        match self.lexer.peek() {
+            Some((Token::Character(')'), _)) => self.consume_token(), // )
+            _ => {
+                return Err(format!(
+                    "Missing parethesis ')' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        match self.lexer.peek() {
+            Some((Token::Character('{'), _)) => has_open_braces = true,
+            _ => (),
+        }
+
+        let stmt = if has_open_braces {
+            self.block_statement()?
+        } else {
+            self.expression_statement()?
+        };
+
+        // ELSE BLOCK
+
+        Ok(Stmt::If(condition, Box::new(stmt), else_block))
     }
 
     fn var_declaration(&mut self) -> Result<Stmt<'a>> {

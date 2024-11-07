@@ -9,7 +9,7 @@ mod parser;
 mod tokenizer;
 
 use crate::evaluator::eval;
-use crate::parser::{Expr, LiteralExpr, Parser, print_expr};
+use crate::parser::{print_expr, Expr, LiteralExpr, Parser};
 use crate::tokenizer::tokenize;
 use evaluator::Interpreter;
 use interpreter_starter_rust::read_file;

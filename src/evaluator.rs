@@ -196,19 +196,7 @@ impl Interpreter {
                                 let val = *(value_.clone().unwrap());
                                 let val = val.get_expression().unwrap();
                                 let expr = self.eval_expr(&val)?;
-                                // self.globals.insert(name.to_string(), expr);
-                                // let _ = self.assign_variable(name.to_string(), expr);
                                 let _ = self.define_variable(name.to_string(), expr);
-
-                                /*if self
-                                    .values
-                                    .last()
-                                    .map_or(false, |env| env.contains_key(name))
-                                {
-                                    self.assign_variable(name.to_string(), expr)?;
-                                } else {
-                                    self.define_variable(name.to_string(), expr);
-                                }*/
                             }
                             _ => {}
                         }
@@ -220,17 +208,7 @@ impl Interpreter {
                     None => LiteralExpr::NIL,
                 };
 
-                // self.globals.insert(name.clone(), value);
                 self.define_variable(name.clone(), value);
-                /*if self
-                    .values
-                    .last()
-                    .map_or(false, |env| env.contains_key(&name))
-                {
-                    self.assign_variable(name.clone(), value)?;
-                } else {
-                    self.define_variable(name.clone(), value);
-                }*/
             }
 
             Stmt::Block(statements) => {
@@ -243,6 +221,24 @@ impl Interpreter {
                 }
 
                 self.scope_exit();
+            }
+
+            Stmt::If(condition, block, else_block) => {
+                let truth_value = match condition {
+                    Expr::Literal(l) => match l {
+                        LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => false,
+                        _ => true,
+                    },
+                    _ => true,
+                };
+
+                if truth_value {
+                    let block_stmt = *block;
+                    let _ = self.run(block_stmt);
+                } else if else_block.is_some() {
+                    let block_stmt = *(else_block.unwrap());
+                    let _ = self.run(block_stmt);
+                }
             }
         }
 
