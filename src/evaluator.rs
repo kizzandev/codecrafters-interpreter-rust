@@ -16,7 +16,7 @@ impl Interpreter {
     pub fn new() -> Self {
         Self {
             enclosing: None,
-            values: vec![],
+            values: vec![HashMap::new()],
         }
     }
 
@@ -65,8 +65,8 @@ impl Interpreter {
             }
         }
 
-        if let Some(ref super_interpreter) = self.enclosing {
-            return super_interpreter.find_variable(name);
+        if let Some(ref enclosing) = self.enclosing {
+            return enclosing.find_variable(name);
         }
 
         None
