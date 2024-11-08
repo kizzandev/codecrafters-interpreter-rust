@@ -223,6 +223,12 @@ impl Interpreter {
                 self.scope_exit();
             }
 
+            Stmt::BinaryLogical(left_stmt_box, token, right_stmt_box) => {
+                eprintln!("LEFT STMT: {:?}", left_stmt_box.deref());
+                eprintln!("TOKEN: {:?}", token);
+                eprintln!("RIGHT STMT: {:?}", right_stmt_box.deref());
+            }
+
             Stmt::If(condition, block, else_block) => {
                 // eprintln!("CONDITION TO EVAL: {:?}", *condition);
 
@@ -267,7 +273,58 @@ impl Interpreter {
                     let block_stmt = *(else_block.unwrap());
                     let _ = self.run(block_stmt);
                 }
-            }
+            } //
+              /*Stmt::If(conditions, block, else_block) => {
+                  let truth_value = true;
+
+                  let mut iter_stmt = conditions.iter();
+                  while let Some(stmt) = iter_stmt.next() {
+                      eprintln!("CONDITION TO EVAL: {:?}", stmt);
+                      match stmt {
+                          Stmt::Expression(Expr::Literal(l)) => match l {
+                              LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => {
+                                  false
+                              }
+                              _ => true,
+                          },
+                          Stmt::Var(_, _) => {
+                              let cond = (*stmt).clone();
+                              let _ = self.run(cond);
+                              true
+                          }
+                          Stmt::Expression(Expr::Unary(_, var_box)) => {
+                              let expr = var_box.as_ref();
+                              match expr {
+                                  Expr::Literal(l) => match l {
+                                      LiteralExpr::FALSE
+                                      | LiteralExpr::NIL
+                                      | LiteralExpr::Number(0.0) => true,
+                                      _ => false,
+                                  },
+                                  _ => false,
+                              }
+                          }
+                          expr => {
+                              let res = self.eval_expr(&expr.get_expression().unwrap())?;
+                              match res {
+                                  LiteralExpr::FALSE
+                                  | LiteralExpr::NIL
+                                  | LiteralExpr::Number(0.0) => false,
+                                  _ => true,
+                              }
+                          }
+                      };
+                  }
+
+                  if truth_value {
+                      let block_stmt = *block;
+                      // eprintln!("BLOCK STMT: {:?}", block_stmt);
+                      let _ = self.run(block_stmt);
+                  } else if else_block.is_some() {
+                      let block_stmt = *(else_block.unwrap());
+                      let _ = self.run(block_stmt);
+                  }
+              }*/
         }
 
         Ok(stdout)
@@ -282,6 +339,19 @@ impl Interpreter {
 
             Expr::Binary(left_expr, token_type, right_expr) => {
                 // eprintln!("LEFT EXPR IS: {:?}", left_expr.as_ref());
+                let is_conector = if token_type.eq(&Token::ReservedKeyword("or"))
+                    || token_type.eq(&Token::ReservedKeyword("and"))
+                {
+                    true
+                } else {
+                    false
+                };
+                let falsy_values = vec![
+                    LiteralExpr::FALSE,
+                    LiteralExpr::NIL,
+                    LiteralExpr::Number(0.0),
+                    LiteralExpr::StringLiteral("".to_string()),
+                ];
 
                 let left_literal = self.eval_expr(left_expr.as_ref())?;
                 let right_literal = self.eval_expr(right_expr.as_ref())?;
@@ -292,7 +362,7 @@ impl Interpreter {
                     return Ok(LiteralExpr::FALSE);
                 }
 
-                if !left_literal.is_same_type(&right_literal) {
+                if !is_conector && !left_literal.is_same_type(&right_literal) {
                     // eprintln!("Error: Not the same type");
                     return Err("Operands must be numbers.".to_string());
                 }
@@ -380,6 +450,22 @@ impl Interpreter {
                         }
                     }
 
+                    (l, Token::ReservedKeyword("or"), r) => {
+                        if !falsy_values.contains(&l) || !falsy_values.contains(&r) {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
+                    (l, Token::ReservedKeyword("and"), r) => {
+                        if !falsy_values.contains(&l) && !falsy_values.contains(&r) {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }
+
                     (l, token_type, r) => Err(format!(
                         "binary expression not supported: {:?} {} {:?}",
                         l, token_type, r
@@ -422,6 +508,8 @@ impl Interpreter {
 
                 None => Err(format!("Undefined variable: {}", name)),
             },
+
+            other => Err(format!("Cannot evaluate: {:?}", other)),
         }
     }
 }
