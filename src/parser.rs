@@ -122,7 +122,8 @@ pub enum Stmt<'a> {
     Var(String, Option<Box<Stmt<'a>>>),
     VarDecl(String, Option<Box<Stmt<'a>>>),
     Block(Vec<Stmt<'a>>),
-    If(Expr<'a>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
+    If(Box<Stmt<'a>>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
+    // If(Expr<'a>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
 }
 
 impl<'a> Stmt<'a> {
@@ -180,7 +181,7 @@ impl<'a> Parser<'a> {
             _ => self.expression_statement(),
         };
 
-        eprintln!("STATEMENT RES: {:?}", res);
+        // eprintln!("STATEMENT RES: {:?}", res);
         match res {
             Ok(Stmt::Block(_)) => res,
             Ok(Stmt::If(_, _, _)) => res,
@@ -198,8 +199,8 @@ impl<'a> Parser<'a> {
 
     fn if_statement(&mut self) -> Result<Stmt<'a>> {
         self.consume_token(); // if
-        let mut has_open_braces = false;
         let mut else_block: Option<Box<Stmt<'a>>> = None;
+        let mut invert_truth = false;
 
         match self.lexer.peek() {
             Some((Token::Character('('), _)) => self.consume_token(), // (
@@ -212,7 +213,31 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let condition = self.expression()?;
+        match self.lexer.peek() {
+            Some((Token::Character('!'), _)) => {
+                self.consume_token(); // !
+                invert_truth = true
+            }
+            _ => {}
+        }
+
+        let condition = self.expression_statement()?;
+
+        let var_name = match &condition {
+            Stmt::Var(name, _) => name.to_string(),
+            _ => "".to_string(),
+        };
+
+        let mut condition = condition.get_expression().unwrap();
+        if invert_truth {
+            condition = Expr::Unary(Token::Character('!'), Box::new(condition));
+        }
+        let mut condition = Stmt::Expression(condition);
+        if !var_name.is_empty() {
+            condition = Stmt::Var(var_name, Some(Box::new(condition)));
+        }
+        let condition = Box::new(condition);
+        // eprintln!("CONDITION: {:?}", condition);
 
         match self.lexer.peek() {
             Some((Token::Character(')'), _)) => self.consume_token(), // )
@@ -225,18 +250,19 @@ impl<'a> Parser<'a> {
             }
         }
 
-        match self.lexer.peek() {
-            Some((Token::Character('{'), _)) => has_open_braces = true,
-            _ => (),
-        }
-
-        let stmt = if has_open_braces {
-            self.block_statement()?
-        } else {
-            self.expression_statement()?
-        };
+        let stmt = self.statement()?;
 
         // ELSE BLOCK
+        let has_else = match self.lexer.peek() {
+            Some((Token::ReservedKeyword("else"), _)) => true,
+            _ => false,
+        };
+
+        if has_else {
+            self.consume_token(); // else
+            let other = self.statement()?;
+            else_block = Some(Box::new(other));
+        }
 
         Ok(Stmt::If(condition, Box::new(stmt), else_block))
     }
@@ -303,6 +329,7 @@ impl<'a> Parser<'a> {
 
                 match self.lexer.peek() {
                     Some((Token::Character(';'), _)) => Ok(Stmt::Expression(expr)),
+                    Some((Token::Character(')'), _)) => Ok(Stmt::Expression(expr)),
                     Some((Token::Character('='), _)) => {
                         self.consume_token();
 

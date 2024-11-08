@@ -224,16 +224,34 @@ impl Interpreter {
             }
 
             Stmt::If(condition, block, else_block) => {
-                let truth_value = match condition {
-                    Expr::Literal(l) => match l {
+                let truth_value = match *condition {
+                    Stmt::Expression(Expr::Literal(l)) => match l {
                         LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => false,
                         _ => true,
                     },
+                    Stmt::Var(_, _) => {
+                        let cond = *(condition.clone());
+                        let _ = self.run(cond);
+                        true
+                    }
+                    Stmt::Expression(Expr::Unary(_, var_box)) => {
+                        let expr = *var_box;
+                        match expr {
+                            Expr::Literal(l) => match l {
+                                LiteralExpr::FALSE
+                                | LiteralExpr::NIL
+                                | LiteralExpr::Number(0.0) => true,
+                                _ => false,
+                            },
+                            _ => false,
+                        }
+                    }
                     _ => true,
                 };
 
                 if truth_value {
                     let block_stmt = *block;
+                    // eprintln!("BLOCK STMT: {:?}", block_stmt);
                     let _ = self.run(block_stmt);
                 } else if else_block.is_some() {
                     let block_stmt = *(else_block.unwrap());
@@ -253,8 +271,9 @@ impl Interpreter {
             Expr::Grouping(inner) => self.eval_expr(inner.as_ref()),
 
             Expr::Binary(left_expr, token_type, right_expr) => {
-                let left_literal = self.eval_expr(left_expr.as_ref())?;
+                // eprintln!("LEFT EXPR IS: {:?}", left_expr.as_ref());
 
+                let left_literal = self.eval_expr(left_expr.as_ref())?;
                 let right_literal = self.eval_expr(right_expr.as_ref())?;
 
                 // eprintln!("EXPRS ARE: {:?} AND {:?}", left_literal, right_literal);
