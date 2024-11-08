@@ -224,6 +224,8 @@ impl Interpreter {
             }
 
             Stmt::If(condition, block, else_block) => {
+                // eprintln!("CONDITION TO EVAL: {:?}", *condition);
+
                 let truth_value = match *condition {
                     Stmt::Expression(Expr::Literal(l)) => match l {
                         LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => false,
@@ -246,7 +248,15 @@ impl Interpreter {
                             _ => false,
                         }
                     }
-                    _ => true,
+                    expr => {
+                        let res = self.eval_expr(&expr.get_expression().unwrap())?;
+                        match res {
+                            LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => {
+                                false
+                            }
+                            _ => true,
+                        }
+                    }
                 };
 
                 if truth_value {
