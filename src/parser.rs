@@ -263,20 +263,14 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let init = self.statement()?;
-        // eprintln!("INIT: {:?}", init);
-
-        /*match self.lexer.peek() {
+        
+        let mut init = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
+        match self.lexer.peek() {
             Some((Token::Character(';'), _)) => self.consume_token(), // ;
             _ => {
-                eprintln!("check");
-                return Err(format!(
-                    "Missing semicolon ';' at {} : {}",
-                    self.lexer.get_line(),
-                    self.lexer.get_column()
-                ))
+                init = self.statement()?;
             }
-        }*/
+        }
 
         let condition = self.generate_condition()?;
 
