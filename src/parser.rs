@@ -432,6 +432,18 @@ impl<'a> Parser<'a> {
                             Box::new(other),
                         )))
                     }
+                    Some((Token::ReservedKeyword("and"), _)) => {
+                        self.consume_token(); // and
+
+                        let other = self.expression_statement()?;
+                        let other = other.get_expression().unwrap();
+
+                        Ok(Stmt::Expression(Expr::Binary(
+                            Box::new(expr),
+                            Token::ReservedKeyword("and"),
+                            Box::new(other),
+                        )))
+                    }
                     other => Err(format!(
                         "expected semicolon after an expression at {} : {}\nGot {:#?}",
                         self.lexer.get_line(),
@@ -587,16 +599,6 @@ impl<'a> Parser<'a> {
                             self.consume_token();
                             Ok(Expr::Grouping(Box::new(expr)))
                         }
-                        /*Some((Token::Character('='), _)) => {
-                            self.consume_token();
-                            let new_expr = Stmt::Var(
-                                expr.get_variable(),
-                                Some(Box::new(Stmt::Expression(self.expression()?))),
-                            )
-                            .get_expression()
-                            .unwrap();
-                            Ok(new_expr)
-                        }*/
                         _ => {
                             eprintln!("Error: Unmatched parentheses.");
                             Err("Error: Unmatched parentheses.".to_string())
