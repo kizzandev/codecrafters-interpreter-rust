@@ -298,8 +298,9 @@ impl<'a> Parser<'a> {
             }
             _ => {
                 increment = self.expression_statement()?;
+                // eprintln!("INC: {:?}", increment);
                 match increment {
-                    Stmt::Expression(_) => {}
+                    Stmt::Expression(_) | Stmt::Var(_, _) => {}
                     _ => return self.syntax_error("Expected an Expression"),
                 };
 
@@ -315,11 +316,6 @@ impl<'a> Parser<'a> {
                 }
             }
         }
-
-        /*match self.lexer.peek() {
-            Some((Token::Character('{'), _)) => {}
-            _ => return self.syntax_error("Expected an open brace '{'"),
-        };*/
 
         let stmt = self.statement()?;
 
