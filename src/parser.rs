@@ -178,6 +178,10 @@ impl<'a> Parser<'a> {
         self.expression()
     }
 
+    fn syntax_error(&self, what: &str) -> Result<Stmt<'a>> {
+        Err(format!("Syntax Error: {what}."))
+    }
+
     fn consume_token(&mut self) {
         // eprintln!("CONSUMED: {:?}", self.lexer.next());
         self.lexer.next();
@@ -200,6 +204,8 @@ impl<'a> Parser<'a> {
             Ok(Stmt::If(_, _, _)) => res,
             Ok(Stmt::While(_, _)) => res,
             Ok(Stmt::For(_, _, _, _)) => res,
+
+            Err(e) => Err(e),
             _ => match self.lexer.next() {
                 Some((Token::Character(';'), _)) => res,
                 other => Err(format!(
@@ -292,6 +298,10 @@ impl<'a> Parser<'a> {
             }
             _ => {
                 increment = self.expression_statement()?;
+                match increment {
+                    Stmt::Expression(_) => {}
+                    _ => return self.syntax_error("Expected an Expression"),
+                };
 
                 match self.lexer.peek() {
                     Some((Token::Character(')'), _)) => self.consume_token(), // )
@@ -305,6 +315,11 @@ impl<'a> Parser<'a> {
                 }
             }
         }
+
+        match self.lexer.peek() {
+            Some((Token::Character('{'), _)) => {}
+            _ => return self.syntax_error("Expected an open brace '{'"),
+        };
 
         let stmt = self.statement()?;
 
@@ -338,7 +353,7 @@ impl<'a> Parser<'a> {
             .unwrap_or(Expr::Literal(LiteralExpr::NIL));
 
         if condition == Expr::Literal(LiteralExpr::NIL) {
-            return Err("Syntax Error: Invalid condition.".to_string());
+            return self.syntax_error("Invalid condition");
         }
 
         if invert_truth {
