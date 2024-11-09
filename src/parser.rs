@@ -394,6 +394,19 @@ impl<'a> Parser<'a> {
                             // eprintln!("RESULT: {:?}", res);
                             return Ok(res);
                         }
+                        Some((Token::ReservedKeyword("and"), _)) => {
+                            self.consume_token(); // and
+
+                            let other = self.expression_statement()?;
+
+                            let res = Stmt::BinaryStatement(
+                                Box::new(result),
+                                Token::ReservedKeyword("and"),
+                                Box::new(other),
+                            );
+
+                            return Ok(res);
+                        }
                         Some((Token::Character(';'), _)) => return Ok(result),
                         _ => {}
                     }
