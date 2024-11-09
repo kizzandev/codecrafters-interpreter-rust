@@ -134,7 +134,7 @@ pub enum Stmt<'a> {
     BinaryStatement(Box<Stmt<'a>>, Token<'a>, Box<Stmt<'a>>),
     While(Box<Stmt<'a>>, Box<Stmt<'a>>),
     // for (var a = 1; a <= 10; a = a + 1) {} ???
-    // For(Box<Stmt<'a>>, Box<Stmt<'a>>)
+    For(Box<Stmt<'a>>, Box<Stmt<'a>>, Box<Stmt<'a>>, Box<Stmt<'a>>),
 }
 
 impl<'a> Stmt<'a> {
@@ -199,6 +199,7 @@ impl<'a> Parser<'a> {
             Ok(Stmt::Block(_)) => res,
             Ok(Stmt::If(_, _, _)) => res,
             Ok(Stmt::While(_, _)) => res,
+            Ok(Stmt::For(_, _, _, _)) => res,
             _ => match self.lexer.next() {
                 Some((Token::Character(';'), _)) => res,
                 other => Err(format!(
@@ -250,8 +251,74 @@ impl<'a> Parser<'a> {
 
     fn for_statement(&mut self) -> Result<Stmt<'a>> {
         self.consume_token(); // for
-                              // TEMP
-        Ok(Stmt::Expression(Expr::Literal(LiteralExpr::NIL)))
+
+        match self.lexer.peek() {
+            Some((Token::Character('('), _)) => self.consume_token(), // (
+            _ => {
+                return Err(format!(
+                    "Missing parethesis '(' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        let init = self.statement()?;
+        // eprintln!("INIT: {:?}", init);
+        
+        /*match self.lexer.peek() {
+            Some((Token::Character(';'), _)) => self.consume_token(), // ;
+            _ => {
+                eprintln!("check");
+                return Err(format!(
+                    "Missing semicolon ';' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }*/
+
+        let condition = self.generate_condition()?;
+
+        match self.lexer.peek() {
+            Some((Token::Character(';'), _)) => self.consume_token(), // ;
+            _ => {
+                return Err(format!(
+                    "Missing semicolon ';' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        let mut increment: Stmt<'a> = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
+
+        match self.lexer.peek() {
+            Some((Token::Character(')'), _)) => self.consume_token(), // )
+            _ => {
+                increment = self.expression_statement()?;
+
+                match self.lexer.peek() {
+                    Some((Token::Character(')'), _)) => self.consume_token(), // )
+                    _ => {
+                        return Err(format!(
+                            "Missing parethesis ')' at {} : {}",
+                            self.lexer.get_line(),
+                            self.lexer.get_column()
+                        ))
+                    }
+                }
+            }
+        }
+
+        let stmt = self.statement()?;
+
+        Ok(Stmt::For(
+            Box::new(init),
+            Box::new(condition),
+            Box::new(increment),
+            Box::new(stmt),
+        ))
     }
 
     fn generate_condition(&mut self) -> Result<Stmt<'a>> {
