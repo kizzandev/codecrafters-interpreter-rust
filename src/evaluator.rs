@@ -321,6 +321,45 @@ impl Interpreter {
                     let _ = self.run(block_stmt);
                 }
             }
+
+            Stmt::While(condition, block) => {
+                let condition_stmt = condition.clone();
+                while match *condition_stmt.clone() {
+                    Stmt::Expression(Expr::Literal(l)) => match l {
+                        LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => false,
+                        _ => true,
+                    },
+                    Stmt::Var(_, _) => {
+                        let cond = *(condition.clone());
+                        let _ = self.run(cond);
+                        true
+                    }
+                    Stmt::Expression(Expr::Unary(_, var_box)) => {
+                        let expr = *(var_box.clone());
+                        match expr {
+                            Expr::Literal(l) => match l {
+                                LiteralExpr::FALSE
+                                | LiteralExpr::NIL
+                                | LiteralExpr::Number(0.0) => true,
+                                _ => false,
+                            },
+                            _ => false,
+                        }
+                    }
+                    expr => {
+                        let res = self.eval_expr(&expr.get_expression().unwrap())?;
+                        match res {
+                            LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => {
+                                false
+                            }
+                            _ => true,
+                        }
+                    }
+                } {
+                    let block_stmt = *block.clone();
+                    let _ = self.run(block_stmt);
+                }
+            }
         }
 
         Ok(stdout)

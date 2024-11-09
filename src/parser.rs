@@ -130,10 +130,11 @@ pub enum Stmt<'a> {
     Var(String, Option<Box<Stmt<'a>>>),
     VarDecl(String, Option<Box<Stmt<'a>>>),
     Block(Vec<Stmt<'a>>),
-    // If(Box<Vec<Stmt<'a>>>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
     If(Box<Stmt<'a>>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
     BinaryStatement(Box<Stmt<'a>>, Token<'a>, Box<Stmt<'a>>),
-    // If(Expr<'a>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
+    While(Box<Stmt<'a>>, Box<Stmt<'a>>),
+    // for (var a = 1; a <= 10; a = a + 1) {} ???
+    // For(Box<Stmt<'a>>, Box<Stmt<'a>>)
 }
 
 impl<'a> Stmt<'a> {
@@ -188,6 +189,8 @@ impl<'a> Parser<'a> {
             Token::ReservedKeyword("var") => self.var_declaration(),
             Token::ReservedKeyword("print") => self.print_statement(),
             Token::ReservedKeyword("if") => self.if_statement(),
+            Token::ReservedKeyword("while") => self.while_statement(),
+            Token::ReservedKeyword("for") => self.for_statement(),
             _ => self.expression_statement(),
         };
 
@@ -195,6 +198,7 @@ impl<'a> Parser<'a> {
         match res {
             Ok(Stmt::Block(_)) => res,
             Ok(Stmt::If(_, _, _)) => res,
+            Ok(Stmt::While(_, _)) => res,
             _ => match self.lexer.next() {
                 Some((Token::Character(';'), _)) => res,
                 other => Err(format!(
@@ -205,6 +209,49 @@ impl<'a> Parser<'a> {
                 )),
             },
         }
+    }
+
+    fn while_statement(&mut self) -> Result<Stmt<'a>> {
+        self.consume_token(); // while
+
+        match self.lexer.peek() {
+            Some((Token::Character('('), _)) => self.consume_token(), // (
+            _ => {
+                return Err(format!(
+                    "Missing parethesis '(' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        let condition = self.generate_condition()?;
+        let condition = Box::new(condition);
+
+        match self.lexer.peek() {
+            Some((Token::Character(')'), _)) => self.consume_token(), // )
+            _ => {
+                return Err(format!(
+                    "Missing parethesis ')' at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ))
+            }
+        }
+
+        let stmt = self.statement()?;
+
+        // TEMP
+        // Ok(Stmt::Expression(Expr::Literal(LiteralExpr::NIL)))
+
+        // eprintln!("WHILE {:?}\nDO {:?}", *condition, stmt);
+        Ok(Stmt::While(condition, Box::new(stmt)))
+    }
+
+    fn for_statement(&mut self) -> Result<Stmt<'a>> {
+        self.consume_token(); // for
+                              // TEMP
+        Ok(Stmt::Expression(Expr::Literal(LiteralExpr::NIL)))
     }
 
     fn generate_condition(&mut self) -> Result<Stmt<'a>> {
