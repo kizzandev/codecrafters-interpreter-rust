@@ -72,17 +72,14 @@ impl Interpreter {
         None
     }
 
-    /*fn find_variable_in_scope(&self, var_name: &str) -> Option<LiteralExpr> {
-        if let Some(lit) = self.globals.get(var_name) {
-            return Some(lit.clone());
-        }
-
-        if let Some(ref super_interpreter) = self.super_interpreter {
-            return super_interpreter.find_variable_in_scope(var_name);
-        }
-
-        None
-    }*/
+    fn get_falsy_values(&self) -> Vec<LiteralExpr> {
+        vec![
+            LiteralExpr::FALSE,
+            LiteralExpr::NIL,
+            LiteralExpr::Number(0.0),
+            LiteralExpr::StringLiteral("".to_string()),
+        ]
+    }
 
     pub fn run(&mut self, stmt: Stmt) -> Result<String> {
         let mut stdout = String::new();
@@ -184,6 +181,7 @@ impl Interpreter {
                 };
 
                 self.assign_variable(name.clone(), value)?;
+                return Ok(name.clone());
             }
 
             Stmt::VarDecl(name, initializer) => {
@@ -223,10 +221,50 @@ impl Interpreter {
                 self.scope_exit();
             }
 
-            Stmt::BinaryLogical(left_stmt_box, token, right_stmt_box) => {
-                eprintln!("LEFT STMT: {:?}", left_stmt_box.deref());
-                eprintln!("TOKEN: {:?}", token);
-                eprintln!("RIGHT STMT: {:?}", right_stmt_box.deref());
+            Stmt::BinaryStatement(left_stmt_box, token, right_stmt_box) => {
+                // eprintln!("LEFT STMT: {:?}", left_stmt_box.deref());
+                // eprintln!("TOKEN: {:?}", token);
+                // eprintln!("RIGHT STMT: {:?}", right_stmt_box.deref());
+
+                let falsy_values = self.get_falsy_values();
+
+                let left_stmt = *left_stmt_box;
+                let right_stmt = *right_stmt_box;
+
+                let left_value = self.run(left_stmt)?;
+                let left = self.find_variable(left_value).unwrap_or(LiteralExpr::NIL);
+
+                match (left, token) {
+                    (l, Token::ReservedKeyword("or")) => {
+                        if !falsy_values.contains(&l) {
+                            return Ok(l.to_string());
+                        } else {
+                            let right_value = self.run(right_stmt)?;
+                            let right = self.find_variable(right_value).unwrap_or(LiteralExpr::NIL);
+
+                            if !falsy_values.contains(&right) {
+                                return Ok(right.to_string());
+                            }
+                        }
+                    }
+
+                    /*(l, Token::ReservedKeyword("and"), r) => {
+                        if !falsy_values.contains(&l) && !falsy_values.contains(&r) {
+                            Ok(LiteralExpr::TRUE)
+                        } else {
+                            Ok(LiteralExpr::FALSE)
+                        }
+                    }*/
+                    (l, token_type) => {
+                        let r = self.run(right_stmt)?;
+                        return Err(format!(
+                            "binary expression not supported: {:?} {} {:?}",
+                            l,
+                            token_type,
+                            self.find_variable(r).unwrap_or(LiteralExpr::NIL)
+                        ));
+                    }
+                }
             }
 
             Stmt::If(condition, block, else_block) => {
@@ -273,58 +311,7 @@ impl Interpreter {
                     let block_stmt = *(else_block.unwrap());
                     let _ = self.run(block_stmt);
                 }
-            } //
-              /*Stmt::If(conditions, block, else_block) => {
-                  let truth_value = true;
-
-                  let mut iter_stmt = conditions.iter();
-                  while let Some(stmt) = iter_stmt.next() {
-                      eprintln!("CONDITION TO EVAL: {:?}", stmt);
-                      match stmt {
-                          Stmt::Expression(Expr::Literal(l)) => match l {
-                              LiteralExpr::FALSE | LiteralExpr::NIL | LiteralExpr::Number(0.0) => {
-                                  false
-                              }
-                              _ => true,
-                          },
-                          Stmt::Var(_, _) => {
-                              let cond = (*stmt).clone();
-                              let _ = self.run(cond);
-                              true
-                          }
-                          Stmt::Expression(Expr::Unary(_, var_box)) => {
-                              let expr = var_box.as_ref();
-                              match expr {
-                                  Expr::Literal(l) => match l {
-                                      LiteralExpr::FALSE
-                                      | LiteralExpr::NIL
-                                      | LiteralExpr::Number(0.0) => true,
-                                      _ => false,
-                                  },
-                                  _ => false,
-                              }
-                          }
-                          expr => {
-                              let res = self.eval_expr(&expr.get_expression().unwrap())?;
-                              match res {
-                                  LiteralExpr::FALSE
-                                  | LiteralExpr::NIL
-                                  | LiteralExpr::Number(0.0) => false,
-                                  _ => true,
-                              }
-                          }
-                      };
-                  }
-
-                  if truth_value {
-                      let block_stmt = *block;
-                      // eprintln!("BLOCK STMT: {:?}", block_stmt);
-                      let _ = self.run(block_stmt);
-                  } else if else_block.is_some() {
-                      let block_stmt = *(else_block.unwrap());
-                      let _ = self.run(block_stmt);
-                  }
-              }*/
+            }
         }
 
         Ok(stdout)
@@ -346,12 +333,7 @@ impl Interpreter {
                 } else {
                     false
                 };
-                let falsy_values = vec![
-                    LiteralExpr::FALSE,
-                    LiteralExpr::NIL,
-                    LiteralExpr::Number(0.0),
-                    LiteralExpr::StringLiteral("".to_string()),
-                ];
+                let falsy_values = self.get_falsy_values();
 
                 let left_literal = self.eval_expr(left_expr.as_ref())?;
                 let right_literal = self.eval_expr(right_expr.as_ref())?;

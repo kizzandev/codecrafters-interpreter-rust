@@ -38,6 +38,10 @@ impl<'input> Lexer<'input> {
             reserved_keywords,
         }
     }
+
+    pub fn get_index(&self) -> usize {
+        self.idx
+    }
 }
 
 // Any Token may be one of the following

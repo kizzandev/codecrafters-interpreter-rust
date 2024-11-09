@@ -132,7 +132,7 @@ pub enum Stmt<'a> {
     Block(Vec<Stmt<'a>>),
     // If(Box<Vec<Stmt<'a>>>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
     If(Box<Stmt<'a>>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
-    BinaryLogical(Box<Stmt<'a>>, Token<'a>, Box<Stmt<'a>>),
+    BinaryStatement(Box<Stmt<'a>>, Token<'a>, Box<Stmt<'a>>),
     // If(Expr<'a>, Box<Stmt<'a>>, Option<Box<Stmt<'a>>>),
 }
 
@@ -237,7 +237,6 @@ impl<'a> Parser<'a> {
 
     fn if_statement(&mut self) -> Result<Stmt<'a>> {
         self.consume_token(); // if
-                              // let mut invert_truth = false;
 
         match self.lexer.peek() {
             Some((Token::Character('('), _)) => self.consume_token(), // (
@@ -250,103 +249,8 @@ impl<'a> Parser<'a> {
             }
         }
 
-        // MARK: START
-
-        /*
-        match self.lexer.peek() {
-            Some((Token::Character('!'), _)) => {
-                self.consume_token(); // !
-                invert_truth = true
-            }
-            _ => {}
-        }
-
-        let condition = self.expression_statement()?;
-
-        let var_name = match &condition {
-            Stmt::Var(name, _) => name.to_string(),
-            _ => "".to_string(),
-        };
-
-        let mut condition: Expr<'a> = condition.get_expression().unwrap();
-        if invert_truth {
-            condition = Expr::Unary(Token::Character('!'), Box::new(condition));
-        }
-        let mut condition = Stmt::Expression(condition);
-        if !var_name.is_empty() {
-            condition = Stmt::Var(var_name, Some(Box::new(condition)));
-        }
-        let condition = Box::new(condition);
-        */
-
-        /*let mut conditions_to_verify: Vec<Stmt<'a>> = Vec::new();
-        while let Some((token, _u)) = self.lexer.peek() {
-            if token == Token::Character(')') {
-                break;
-            }
-
-            /*if token == Token::ReservedKeyword("or") {
-                conditions_to_verify.push(Stmt::Expression(Expr::Logical(LogicalOp::Or)));
-            } else if token == Token::ReservedKeyword("and") {
-                conditions_to_verify.push(Stmt::Expression(Expr::Logical(LogicalOp::And)));
-            }*/
-
-            match self.lexer.peek() {
-                Some((Token::Character('!'), _)) => {
-                    self.consume_token(); // !
-                    invert_truth = true
-                }
-                _ => {}
-            }
-
-            let condition = self.expression_statement()?;
-
-            let var_name = match &condition {
-                Stmt::Var(name, _) => name.to_string(),
-                _ => "".to_string(),
-            };
-
-            let mut condition: Expr<'a> = condition.get_expression().unwrap();
-            if invert_truth {
-                condition = Expr::Unary(Token::Character('!'), Box::new(condition));
-            }
-            let mut condition = Stmt::Expression(condition);
-            if !var_name.is_empty() {
-                condition = Stmt::Var(var_name, Some(Box::new(condition)));
-            }
-
-            conditions_to_verify.push(condition);
-        }
-        let condition = Box::new(conditions_to_verify);*/
-
         let condition = self.generate_condition()?;
-        // eprintln!("CONDITION: {:?}", condition);
-
-        /* while let Some((token, _u)) = self.lexer.peek() {
-            // if !matches!(token, Token::ReservedKeyword("or") | Token::ReservedKeyword("and")) {
-            //     break;
-            // }
-
-            eprintln!("TOKEN: {:?}", token);
-            match token {
-                Token::ReservedKeyword("or") => {
-                    self.consume_token();
-                    condition = Stmt::BinaryLogical(
-                        Box::new(condition),
-                        token,
-                        Box::new(self.generate_condition()?),
-                    );
-                }
-                Token::ReservedKeyword("and") => {
-                    self.consume_token();
-                }
-                _ => break,
-            }
-        }*/
         let condition = Box::new(condition);
-
-        // MARK: END
-        // eprintln!("CONDITION: {:?}", condition);
 
         match self.lexer.peek() {
             Some((Token::Character(')'), _)) => self.consume_token(), // )
@@ -433,8 +337,68 @@ impl<'a> Parser<'a> {
 
     fn expression_statement(&mut self) -> Result<Stmt<'a>> {
         match self.lexer.peek() {
+            None => {
+                return Err(format!(
+                    "expected semicolon after an expression at {} : {}",
+                    self.lexer.get_line(),
+                    self.lexer.get_column()
+                ));
+            }
             Some((Token::Character('{'), _)) => self.block_statement(),
-            _ => {
+            other => {
+                let mut has_stmt = false;
+                if other.is_some() && other.unwrap().0 == Token::Character('(') {
+                    let temp = self.lexer.clone();
+                    while let Some((token, _)) = self.lexer.next() {
+                        match token {
+                            Token::Character(')') => {
+                                self.lexer = temp;
+                                break;
+                            }
+                            Token::Character('=') => {
+                                self.lexer = temp;
+                                has_stmt = true;
+                                break;
+                            }
+                            _ => continue,
+                        }
+                    }
+                };
+
+                if has_stmt {
+                    self.consume_token(); // (
+                    let result = self.expression_statement()?;
+                    match self.lexer.peek() {
+                        Some((Token::Character(')'), _)) => self.consume_token(), // )
+                        _ => return Err("Error: Unmatched parentheses.".to_string()),
+                    }
+
+                    // eprintln!("RESULT: {:?}", result);
+                    // return Ok(result);
+
+                    match self.lexer.peek() {
+                        Some((Token::ReservedKeyword("or"), _)) => {
+                            self.consume_token(); // or
+
+                            let other = self.expression_statement()?; //
+                                                                      // let other = other.get_expression().unwrap();
+
+                            // eprintln!("LEFT: {:?}\nRIGHT: {:?}", result, other);
+
+                            let res = Stmt::BinaryStatement(
+                                Box::new(result),
+                                Token::ReservedKeyword("or"),
+                                Box::new(other),
+                            );
+
+                            // eprintln!("RESULT: {:?}", res);
+                            return Ok(res);
+                        }
+                        Some((Token::Character(';'), _)) => return Ok(result),
+                        _ => {}
+                    }
+                }
+
                 let expr = self.expression()?;
 
                 match self.lexer.peek() {
@@ -618,13 +582,34 @@ impl<'a> Parser<'a> {
                 Token::Character('(') => {
                     self.lexer.next();
                     let expr = self.expression()?;
-                    if let Some((Token::Character(')'), _)) = self.lexer.peek() {
+                    match self.lexer.peek() {
+                        Some((Token::Character(')'), _)) => {
+                            self.consume_token();
+                            Ok(Expr::Grouping(Box::new(expr)))
+                        }
+                        /*Some((Token::Character('='), _)) => {
+                            self.consume_token();
+                            let new_expr = Stmt::Var(
+                                expr.get_variable(),
+                                Some(Box::new(Stmt::Expression(self.expression()?))),
+                            )
+                            .get_expression()
+                            .unwrap();
+                            Ok(new_expr)
+                        }*/
+                        _ => {
+                            eprintln!("Error: Unmatched parentheses.");
+                            Err("Error: Unmatched parentheses.".to_string())
+                        }
+                    }
+
+                    /*if let Some((Token::Character(')'), _)) = self.lexer.peek() {
                         self.lexer.next();
                         Ok(Expr::Grouping(Box::new(expr)))
                     } else {
                         eprintln!("Error: Unmatched parentheses.");
                         Err("Error: Unmatched parentheses.".to_string())
-                    }
+                    }*/
                 }
                 Token::Identifier(i) => {
                     self.lexer.next();
