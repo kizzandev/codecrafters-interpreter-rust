@@ -77,7 +77,7 @@ impl Interpreter {
             LiteralExpr::FALSE,
             LiteralExpr::NIL,
             LiteralExpr::Number(0.0),
-            LiteralExpr::StringLiteral("".to_string()),
+            // LiteralExpr::StringLiteral("".to_string()), // THEY CONSIDER THIS A TRUTHY VALUE I GUESS
         ]
     }
 
