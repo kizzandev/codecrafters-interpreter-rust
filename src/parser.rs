@@ -263,7 +263,6 @@ impl<'a> Parser<'a> {
             }
         }
 
-        
         let mut init = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
         match self.lexer.peek() {
             Some((Token::Character(';'), _)) => self.consume_token(), // ;
@@ -334,7 +333,14 @@ impl<'a> Parser<'a> {
             _ => "".to_string(),
         };
 
-        let mut condition: Expr<'a> = condition.get_expression().unwrap();
+        let mut condition: Expr<'a> = condition
+            .get_expression()
+            .unwrap_or(Expr::Literal(LiteralExpr::NIL));
+
+        if condition == Expr::Literal(LiteralExpr::NIL) {
+            return Err("Syntax Error: Invalid condition.".to_string());
+        }
+
         if invert_truth {
             condition = Expr::Unary(Token::Character('!'), Box::new(condition));
         }
