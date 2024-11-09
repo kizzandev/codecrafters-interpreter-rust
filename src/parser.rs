@@ -270,6 +270,14 @@ impl<'a> Parser<'a> {
         }
 
         let mut init = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
+        match init {
+            Stmt::Expression(Expr::Literal(LiteralExpr::NIL)) => {
+                return self.syntax_error("Expected an Expression")
+            }
+            Stmt::Expression(_) | Stmt::Var(_, _) | Stmt::VarDecl(_, _) => {}
+            _ => return self.syntax_error("Expected an Expression"),
+        };
+
         match self.lexer.peek() {
             Some((Token::Character(';'), _)) => self.consume_token(), // ;
             _ => {
