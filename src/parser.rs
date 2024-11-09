@@ -265,7 +265,7 @@ impl<'a> Parser<'a> {
 
         let init = self.statement()?;
         // eprintln!("INIT: {:?}", init);
-        
+
         /*match self.lexer.peek() {
             Some((Token::Character(';'), _)) => self.consume_token(), // ;
             _ => {
@@ -291,10 +291,12 @@ impl<'a> Parser<'a> {
             }
         }
 
-        let mut increment: Stmt<'a> = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
+        let mut increment = Stmt::Expression(Expr::Literal(LiteralExpr::NIL));
 
         match self.lexer.peek() {
-            Some((Token::Character(')'), _)) => self.consume_token(), // )
+            Some((Token::Character(')'), _)) => {
+                self.consume_token(); // )
+            }
             _ => {
                 increment = self.expression_statement()?;
 

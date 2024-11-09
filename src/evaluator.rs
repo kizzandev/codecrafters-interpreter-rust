@@ -399,16 +399,8 @@ impl Interpreter {
                 } {
                     let block_stmt = *block.clone();
                     let _ = self.run(block_stmt);
-                    let inc_stmt = *increment.clone();
-                    let inc = inc_stmt
-                        .get_expression()
-                        .unwrap_or(Expr::Literal(LiteralExpr::NIL));
-                    match inc {
-                        Expr::Literal(LiteralExpr::NIL) => (),
-                        other => {
-                            let _ = self.eval_expr(&other);
-                        }
-                    }
+                    let inc = *increment.clone();
+                    let _ = self.run(inc);
                 }
             }
         }
