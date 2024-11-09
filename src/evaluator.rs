@@ -249,10 +249,17 @@ impl Interpreter {
                     }
 
                     (l, Token::ReservedKeyword("and")) => {
+                        let is_left = !falsy_values.contains(&l);
+
+                        if !is_left {
+                            return Ok(l.to_string());
+                        }
+
                         let right_value = self.run(right_stmt)?;
                         let right = self.find_variable(right_value).unwrap_or(LiteralExpr::NIL);
+                        let is_right = !falsy_values.contains(&right);
 
-                        if !falsy_values.contains(&l) && !falsy_values.contains(&right) {
+                        if is_left && is_right {
                             return Ok(right.to_string());
                         }
                     }
