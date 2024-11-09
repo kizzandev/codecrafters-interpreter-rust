@@ -248,17 +248,19 @@ impl Interpreter {
                         }
                     }
 
-                    /*(l, Token::ReservedKeyword("and"), r) => {
-                        if !falsy_values.contains(&l) && !falsy_values.contains(&r) {
-                            Ok(LiteralExpr::TRUE)
-                        } else {
-                            Ok(LiteralExpr::FALSE)
+                    (l, Token::ReservedKeyword("and")) => {
+                        let right_value = self.run(right_stmt)?;
+                        let right = self.find_variable(right_value).unwrap_or(LiteralExpr::NIL);
+
+                        if !falsy_values.contains(&l) && !falsy_values.contains(&right) {
+                            return Ok(right.to_string());
                         }
-                    }*/
+                    }
+
                     (l, token_type) => {
                         let r = self.run(right_stmt)?;
                         return Err(format!(
-                            "binary expression not supported: {:?} {} {:?}",
+                            "binary statement not supported: {:?} {} {:?}",
                             l,
                             token_type,
                             self.find_variable(r).unwrap_or(LiteralExpr::NIL)
