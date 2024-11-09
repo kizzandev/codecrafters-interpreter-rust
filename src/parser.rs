@@ -316,10 +316,10 @@ impl<'a> Parser<'a> {
             }
         }
 
-        match self.lexer.peek() {
+        /*match self.lexer.peek() {
             Some((Token::Character('{'), _)) => {}
             _ => return self.syntax_error("Expected an open brace '{'"),
-        };
+        };*/
 
         let stmt = self.statement()?;
 
