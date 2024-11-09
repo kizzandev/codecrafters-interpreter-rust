@@ -444,7 +444,8 @@ impl Interpreter {
 
                     (l, Token::ReservedKeyword("and"), r) => {
                         if !falsy_values.contains(&l) && !falsy_values.contains(&r) {
-                            Ok(LiteralExpr::TRUE)
+                            // Ok(LiteralExpr::TRUE)
+                            Ok(r)
                         } else {
                             Ok(LiteralExpr::FALSE)
                         }
